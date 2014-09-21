@@ -1,0 +1,34 @@
+{
+    "name":              "tq/shamir",
+    "minimum-stability": "stable",
+    "type":        "library",
+    "license":     "MIT",
+    "authors":           [
+         {
+            "name":     "Stefan Gehrig",
+            "email":    "gehrig@teqneers.de",
+            "homepage": "http://opensource.teqneers.de/"
+        },
+         {
+            "name":     "Oliver Müller",
+            "email":    "mueller@teqneers.de",
+            "homepage": "http://opensource.teqneers.de/"
+        }
+    ],
+    "require":           {
+        "php": ">=5.4.0"
+    },
+    "require-dev":       {
+        "phpunit/phpunit": "4.2.*"
+    },
+    "autoload":          {
+        "psr-4": {
+            "TQ\\Sharmir": "src/"
+        }
+    },
+    "autoload-dev":          {
+        "psr-4": {
+            "TQ\\Sharmir\\Tests": "tests/"
+        }
+    }
+}
