@@ -52,9 +52,25 @@ class ShareCommand extends Command
             $secret   = $helper->ask($input, $output, $question);
 
             $question = new Question('Please enter the number of shared secrets to create: ', 3);
-            $number   = $helper->ask($input, $output, $question);
+            $question->setValidator(
+                function ($a) {
+                    if (!ctype_digit($a)) {
+                        throw new \Exception('The number of shared secrets must be an integer');
+                    }
+                    return (int)$a;
+                }
+            );
+            $number = $helper->ask($input, $output, $question);
 
             $question = new Question('Please enter the number of shared secrets required: ', 2);
+            $question->setValidator(
+                function ($a) {
+                    if (!ctype_digit($a)) {
+                        throw new \Exception('The number of shared secrets required must be an integer');
+                    }
+                    return (int)$a;
+                }
+            );
             $quorum   = $helper->ask($input, $output, $question);
         } else {
             $number = $input->getOption('number');
