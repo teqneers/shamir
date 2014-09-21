@@ -6,3 +6,4 @@ use TQ\Shamir\Secret;
 $shares = Secret::share('Shamir\'s Shared Secret Implementation in PHP', 3, 2);
 var_dump($shares);
 var_dump(Secret::recover(array_slice($shares, 0, 2)));
+var_dump(Secret::recover(array_slice($shares, 1, 3)));

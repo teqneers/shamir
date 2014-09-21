@@ -14,26 +14,25 @@ namespace TQ\Shamir;
 class Secret
 {
     /**
-     * @var int needs to be a prime > max(2^8, $number)
+     * @var integer     Prime number has to be greater than 256
      */
-    const Q = 257;
+    const prime = 257;
 
     /**
      * @var array Cache of the inverse table.
      */
-    private static $invTab;
+    protected static $invTab;
 
     /**
-     * Calculates $number % self::Q
+     * Calculate module of any given number using prime
      *
-     * @param int $number
-     * @return int
+     * @param   integer     Number
+     * @return  integer     Module of number
      */
-    private static function modQ($number)
+    protected static function modulo( $number )
     {
-        $mod = $number % self::Q;
-
-        return ($mod < 0) ? $mod + self::Q : $mod;
+        $modulo = $number % self::prime;
+        return ( $modulo < 0 ) ? $modulo + self::prime : $modulo;
     }
 
     /**
@@ -41,36 +40,19 @@ class Secret
      *
      * @return array
      */
-    private static function invTab()
+    protected static function invTab()
     {
         if (!isset(self::$invTab)) {
             $x            = $y = 1;
             self::$invTab = array(0 => 0);
-            for ($i = 0; $i < self::Q; $i++) {
+            for ($i = 0; $i < self::prime; $i++) {
                 self::$invTab[$x] = $y;
-                $x                = self::modQ(3 * $x);
-                $y                = self::modQ(86 * $y);
+                $x                = self::modulo(3 * $x);
+                $y                = self::modulo(86 * $y);
             }
         }
 
         return self::$invTab;
-    }
-
-    /**
-     * Applies the horner schema to x using the coefficients
-     *
-     * @param int   $x
-     * @param array $coefficients
-     * @return int
-     */
-    private static function horner($x, array $coefficients)
-    {
-        $val = 0;
-        foreach ($coefficients as $c) {
-            $val = self::modQ($x * $val + $c);
-        }
-
-        return $val;
     }
 
     /**
@@ -79,27 +61,11 @@ class Secret
      * @param int $i
      * @return int
      */
-    private static function inv($i)
+    protected static function inv($i)
     {
         $invTab = self::invTab();
 
-        return ($i < 0) ? self::modQ(-$invTab[-$i]) : $invTab[$i];
-    }
-
-    /**
-     * Returns an array of random coefficients
-     *
-     * @param int $quorum
-     * @return array
-     */
-    private static function coefficients($quorum)
-    {
-        $coefficients = array();
-        for ($i = 0; $i < $quorum - 1; $i++) {
-            $coefficients[] = self::modQ(mt_rand(0, 65535));
-        }
-
-        return $coefficients;
+        return ($i < 0) ? self::modulo(-$invTab[-$i]) : $invTab[$i];
     }
 
     /**
@@ -110,7 +76,7 @@ class Secret
      * @return array
      * @throws \RuntimeException
      */
-    private static function reverseCoefficients(array $keyX, $quorum)
+    protected static function reverseCoefficients(array $keyX, $quorum)
     {
         $coefficients = array();
 
@@ -118,7 +84,7 @@ class Secret
             $temp = 1;
             for ($j = 0; $j < $quorum; $j++) {
                 if ($i != $j) {
-                    $temp = self::modQ(
+                    $temp = self::modulo(
                         -$temp * $keyX[$j] * self::inv($keyX[$i] - $keyX[$j])
                     );
                 }
@@ -136,66 +102,82 @@ class Secret
     }
 
     /**
-     * Calculates the secret value
+     * Generate random coefficient
      *
-     * @param int $byte
-     * @param int $number
-     * @param int $quorum
-     * @return array
+     * @param   integer $threshold      Number of coefficients needed
+     * @return  array                   Random coefficients
      */
-    private static function calculateSecret($byte, $number, $quorum)
-    {
-        $coefficients   = self::coefficients($quorum);
-        $coefficients[] = $byte;
-
-        $result = array();
-        for ($i = 0; $i < $number; $i++) {
-            $result[] = self::horner($i + 1, $coefficients);
+    protected static function generateCoefficients( $threshold ) {
+        $coefficients = array();
+        for( $i = 0; $i < $threshold - 1; $i++ ) {
+            $coefficients[] = self::modulo( mt_rand(0, PHP_INT_MAX) );
         }
 
-        return $result;
+        return $coefficients;
     }
 
     /**
-     * Creates the shared secrets
+     * Calculate y values of polynomial curve using horner's method
      *
-     * @param string   $secret
-     * @param int      $number
-     * @param int|null $quorum
-     * @return array
+     * @see     http://en.wikipedia.org/wiki/Horner%27s_method
+     * @param   integer $x                  X coordinate
+     * @param   array   $coefficients       Polynomial coefficients
+     * @return  integer                     Y coordinate
+     */
+    protected static function hornerMethod( $x, array $coefficients ) {
+        $y = 0;
+        foreach( $coefficients as $c ) {
+            $y = self::modulo( $x * $y + $c);
+        }
+
+        return $y;
+    }
+
+    /**
+     * Generate shared secrets
+     *
+     * @param	string	$secret     Secret
+     * @param	integer	$shares     Number of parts to share
+     * @param	integer $threshold  Minimum number of shares required for decryption
+     * @return  array               Secret shares
      * @throws \OutOfBoundsException
      */
-    public static function share($secret, $number, $quorum = null)
-    {
-        if ($number > self::Q - 1 || $number < 0) {
-            throw new \OutOfBoundsException("Number ($number) needs to be between 0 and " . (self::Q - 1));
+    public static function share( $secret, $shares, $threshold = 2 ) {
+
+        // check if number of shares is less than our prime, otherwise we have a security problem
+        if( $shares >= self::prime || $shares < 1 ) {
+            throw new \OutOfRangeException( 'Number of shares has to be between 0 and '.self::prime.'.' );
         }
 
-        if (is_null($quorum)) {
-            $quorum = floor($number / 2) + 1;
-        } elseif ($quorum > $number) {
-            throw new \OutOfBoundsException("Quorum ($quorum) cannot exceed number ($number)");
+        if( $shares < $threshold ) {
+            throw new \OutOfRangeException( 'Threshold has to be between 0 and '.$threshold.'.' );
         }
 
+        // divide secrete into single bytes, which we encrypt one by one
         $result = array();
+        foreach( unpack('C*', $secret) as $byte ) {
+            $coeffs = self::generateCoefficients( $threshold );
+            $coeffs[] = $byte;
 
-        foreach (unpack("C*", $secret) as $byte) {
-            foreach (self::calculateSecret($byte, $number, $quorum) as $subResult) {
-                $result[] = $subResult;
+            // go through x coordinates and calculate y value
+            for( $x = 1; $x <= $shares; $x++ ) {
+                // use horner method to calculate y value
+                $result[] = self::hornerMethod( $x, $coeffs );
+
             }
         }
 
-        $keys = array();
-
-        for ($i = 0; $i < $number; $i++) {
-            $key = sprintf("%02x%02x", $quorum, $i + 1);
+        // convert y coordinates into hexadecimals shares
+        $passwords = array();
+        for ($i = 0; $i < $shares; $i++) {
+            $key = sprintf("%02x%02x", $threshold, $i + 1);
             for ($j = 0; $j < strlen($secret); $j++) {
-                $key .= ($result[$j * $number + $i] == 256) ? "g0" : sprintf("%02x", $result[$j * $number + $i]);
+                $key .= ($result[$j * $shares + $i] == 256) ? "g0" : sprintf("%02x", $result[$j * $shares + $i]);
             }
-            $keys[] = substr($key, 0);
+            $passwords[] = substr($key, 0);
         }
 
-        return $keys;
+        return $passwords;
     }
 
     /**
@@ -230,7 +212,7 @@ class Secret
         for ($i = 0; $i < $keyLen; $i++) {
             $temp = 0;
             for ($j = 0; $j < $quorum; $j++) {
-                $temp = self::modQ(
+                $temp = self::modulo(
                     $temp + $keyY[$keyLen * $j + $i] * $coefficients[$j]
                 );
             }
