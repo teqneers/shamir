@@ -9,6 +9,7 @@
 namespace TQ\Shamir\Console;
 
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Helper\FormatterHelper;
 use Symfony\Component\Console\Helper\QuestionHelper;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -48,30 +49,38 @@ class ShareCommand extends Command
             /** @var QuestionHelper $dialog */
             $helper = $this->getHelper('question');
 
-            $question = new Question('Please enter the secret to share: ');
+            $question = new Question('<question>The secret to share</question>: ');
             $secret   = $helper->ask($input, $output, $question);
 
-            $question = new Question('Please enter the number of shared secrets to create: ', 3);
+            $question = new Question(
+                '<question>Number of shared secrets to create</question> <comment>[3]</comment>: ',
+                3
+            );
             $question->setValidator(
                 function ($a) {
-                    if (!ctype_digit($a)) {
+                    if (!is_int($a) && !ctype_digit($a)) {
                         throw new \Exception('The number of shared secrets must be an integer');
                     }
+
                     return (int)$a;
                 }
             );
             $number = $helper->ask($input, $output, $question);
 
-            $question = new Question('Please enter the number of shared secrets required: ', 2);
+            $question = new Question(
+                '<question>Number of shared secrets required</question> <comment>[2]</comment>: ',
+                2
+            );
             $question->setValidator(
                 function ($a) {
-                    if (!ctype_digit($a)) {
+                    if (!is_int($a) && !ctype_digit($a)) {
                         throw new \Exception('The number of shared secrets required must be an integer');
                     }
+
                     return (int)$a;
                 }
             );
-            $quorum   = $helper->ask($input, $output, $question);
+            $quorum = $helper->ask($input, $output, $question);
         } else {
             $number = $input->getOption('number');
             $quorum = $input->getOption('quorum');
@@ -79,11 +88,11 @@ class ShareCommand extends Command
 
 
         $shared = Secret::share($secret, $number, $quorum);
-        $output->writeln('========================');
-        foreach ($shared as $s) {
-            $output->writeln($s);
-        }
-        $output->writeln('========================');
+
+        /** @var FormatterHelper $formatter */
+        $formatter = $this->getHelper('formatter');
+        $block     = $formatter->formatBlock($shared, 'info', true);
+        $output->writeln($block);
     }
 
 }
