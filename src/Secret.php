@@ -169,7 +169,7 @@ print_r(self::$invTab);
             return $retval;
         }
         if ($fromBaseInput != '0123456789')
-            $base10=convBase($numberInput, $fromBaseInput, '0123456789');
+            $base10=self::convBase($numberInput, $fromBaseInput, '0123456789');
         else
             $base10 = $numberInput;
         if ($base10<strlen($toBaseInput))
@@ -256,7 +256,7 @@ print_r(self::$invTab);
     public static function recover(array $keys)
     {
         if( !count($keys) ) {
-            throw \RuntimeException('No keys given.');
+            throw new \RuntimeException('No keys given.');
         }
 
         $keyX   = array();
