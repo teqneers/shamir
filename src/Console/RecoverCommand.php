@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: stefan
- * Date: 21.09.14
- * Time: 10:28
- */
 
 namespace TQ\Shamir\Console;
 
@@ -19,7 +13,9 @@ use TQ\Shamir\Secret;
 
 class RecoverCommand extends Command
 {
-
+    /**
+     * @inheritdoc
+     */
     protected function configure()
     {
         $this->setName('shamir:recover')->setDescription('Recover a shared secret')->addArgument(
@@ -29,6 +25,9 @@ class RecoverCommand extends Command
         );
     }
 
+    /**
+     * @inheritdoc
+     */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         /** @var array $shares */

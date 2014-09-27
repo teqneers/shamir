@@ -20,7 +20,9 @@ use TQ\Shamir\Secret;
 
 class ShareCommand extends Command
 {
-
+    /**
+     * @inheritdoc
+     */
     protected function configure()
     {
         $this->setName('shamir:share')->setDescription('Create a shared secret')->addArgument(
@@ -42,6 +44,9 @@ class ShareCommand extends Command
         );
     }
 
+    /**
+     * @inheritdoc
+     */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $secret = $input->getArgument('secret');
@@ -53,8 +58,7 @@ class ShareCommand extends Command
             $secret   = $helper->ask($input, $output, $question);
 
             $question = new Question(
-                '<question>Number of shared secrets to create</question> <comment>[3]</comment>: ',
-                3
+                '<question>Number of shared secrets to create</question> <comment>[3]</comment>: ', 3
             );
             $question->setValidator(
                 function ($a) {
@@ -68,8 +72,7 @@ class ShareCommand extends Command
             $number = $helper->ask($input, $output, $question);
 
             $question = new Question(
-                '<question>Number of shared secrets required</question> <comment>[2]</comment>: ',
-                2
+                '<question>Number of shared secrets required</question> <comment>[2]</comment>: ', 2
             );
             $question->setValidator(
                 function ($a) {
