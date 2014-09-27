@@ -18,14 +18,6 @@ use TQ\Shamir\Random\PhpGenerator;
 class Secret
 {
     /**
-     * Prime number has to be greater than 256
-     *
-     * @const integer
-     */
-//    const prime = 257;
-    const PRIME = 4294967311;
-
-    /**
      * The random generator
      *
      * @var Generator|null
@@ -76,7 +68,7 @@ class Secret
     protected static function getAlgorithm()
     {
         if (!self::$algorithm) {
-            self::setAlgorithm(new Shamir(self::PRIME));
+            self::setAlgorithm(new Shamir());
         }
 
         return self::$algorithm;
