@@ -32,18 +32,27 @@ class Secret
     protected static $algorithm;
 
     /**
-     * Initializes the random generator
+     * Overrides the random generator to use
      *
      * @param Generator|null $randomGenerator The random generator
+     * @param boolean        $returnOld       True to return the old random generator
+     * @return Generator|null The old random generator if $returnOld is true
      */
-    public static function initRandomGenerator(Generator $randomGenerator = null)
+    public static function setRandomGenerator(Generator $randomGenerator = null, $returnOld = true)
     {
+        if ($returnOld) {
+            $oldRandomGenerator = self::getRandomGenerator();
+        } else {
+            $oldRandomGenerator = null;
+        }
         self::$randomGenerator = $randomGenerator;
 
         $algorithm = self::$algorithm;
         if ($algorithm instanceof RandomGeneratorAware) {
             $algorithm->setRandomGenerator(self::getRandomGenerator());
         }
+
+        return $oldRandomGenerator;
     }
 
     /**
@@ -51,7 +60,7 @@ class Secret
      *
      * @return Generator
      */
-    protected static function getRandomGenerator()
+    public static function getRandomGenerator()
     {
         if (!self::$randomGenerator) {
             self::$randomGenerator = new PhpGenerator();
@@ -65,10 +74,10 @@ class Secret
      *
      * @return Algorithm
      */
-    protected static function getAlgorithm()
+    public static function getAlgorithm()
     {
         if (!self::$algorithm) {
-            self::setAlgorithm(new Shamir());
+            self::setAlgorithm(new Shamir(), false);
         }
 
         return self::$algorithm;
@@ -78,13 +87,22 @@ class Secret
      * Overrides the algorithm to use
      *
      * @param Algorithm $algorithm
+     * @param boolean   $returnOld True to return the old algorithm
+     * @return Algorithm|null The old algorithm if $returnOld is true
      */
-    public static function setAlgorithm(Algorithm $algorithm = null)
+    public static function setAlgorithm(Algorithm $algorithm = null, $returnOld = true)
     {
+        if ($returnOld) {
+            $oldAlgorithm = self::getAlgorithm();
+        } else {
+            $oldAlgorithm = null;
+        }
+
         if ($algorithm instanceof RandomGeneratorAware) {
             $algorithm->setRandomGenerator(self::getRandomGenerator());
         }
         self::$algorithm = $algorithm;
+        return $oldAlgorithm;
     }
 
     /**

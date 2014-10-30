@@ -71,11 +71,9 @@ class Shamir implements Algorithm, RandomGeneratorAware
     }
 
     /**
-     * Returns the random generator
-     *
-     * @return Generator
+     * @inheritdoc
      */
-    protected function getRandomGenerator()
+    public function getRandomGenerator()
     {
         if (!$this->randomGenerator) {
             $this->randomGenerator = new PhpGenerator();
@@ -147,9 +145,7 @@ class Shamir implements Algorithm, RandomGeneratorAware
             $temp = 1;
             for ($j = 0; $j < $threshold; $j++) {
                 if ($i != $j) {
-                    $temp = $this->modulo(
-                        -$temp * $keyX[$j] * $this->inv($keyX[$i] - $keyX[$j])
-                    );
+                    $temp = $this->modulo(-$temp * $keyX[$j] * $this->inv($keyX[$i] - $keyX[$j]));
                 }
             }
 
@@ -226,10 +222,8 @@ class Shamir implements Algorithm, RandomGeneratorAware
         if ($toBaseInput == '0123456789') {
             $retVal = 0;
             for ($i = 1; $i <= $numberLen; $i++) {
-                $retVal = bcadd(
-                    $retVal,
-                    bcmul(array_search($number[$i - 1], $fromBase), bcpow($fromLen, $numberLen - $i))
-                );
+                $retVal = bcadd($retVal,
+                    bcmul(array_search($number[$i - 1], $fromBase), bcpow($fromLen, $numberLen - $i)));
             }
 
             return $retVal;
@@ -295,12 +289,8 @@ class Shamir implements Algorithm, RandomGeneratorAware
         for ($i = 0; $i < $shares; $i++) {
             $key = sprintf("%02x%02x", $threshold, $i + 1);
             for ($j = 0; $j < strlen($secret); $j++) {
-                $key .= str_pad(
-                    self::convBase($result[$j * $shares + $i], self::DECIMAL, self::CHARS),
-                    2,
-                    0,
-                    STR_PAD_LEFT
-                );
+                $key .= str_pad(self::convBase($result[$j * $shares + $i], self::DECIMAL, self::CHARS), 2, 0,
+                    STR_PAD_LEFT);
 
             }
             $passwords[] = substr($key, 0);
@@ -351,9 +341,7 @@ class Shamir implements Algorithm, RandomGeneratorAware
         for ($i = 0; $i < $keyLen; $i++) {
             $temp = 0;
             for ($j = 0; $j < $threshold; $j++) {
-                $temp = $this->modulo(
-                    $temp + $keyY[$keyLen * $j + $i] * $coefficients[$j]
-                );
+                $temp = $this->modulo($temp + $keyY[$keyLen * $j + $i] * $coefficients[$j]);
             }
             $secret .= chr($temp);
         }
