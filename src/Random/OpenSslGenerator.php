@@ -3,45 +3,56 @@
 namespace TQ\Shamir\Random;
 
 /**
- * Class PhpGenerator
+ * Class OpenSslGenerator
+ *
+ * Generate a pseudo-random string of bytes using the OpenSSL library.
  *
  * @package TQ\Shamir\Random
  */
-class PhpGenerator implements Generator
+class OpenSslGenerator implements Generator
 {
 
     /**
-     * The maximum random number
+     * Length of the desired string of bytes
      *
      * @var int
      */
-    protected $max = PHP_INT_MAX;
+    protected $bytes = PHP_INT_SIZE;
 
     /**
-     * The minimum random number
+     * Force strong random number generation or "die"
      *
-     * @var int
+     * @var bool
      */
-    protected $min = 0;
+    protected $forceStrong = true;
 
     /**
      * Constructor
      *
-     * @param int $max The maximum random number
-     * @param int $min The minimum random number
+     * @param int $bytes Bytes to use in result
+     * @param int $forceStrong Force strong random number generation
      */
-    public function __construct($max = PHP_INT_MAX, $min = 0)
+    public function __construct($bytes = PHP_INT_SIZE, $forceStrong = true)
     {
-        $this->max = (int)$max;
-        $this->min = (int)$min;
+        $this->bytes = (int)$bytes;
+        $this->forceStrong = (bool)$forceStrong;
     }
 
     /**
      * @inheritdoc
+     * @see http://php.net/manual/en/function.openssl-random-pseudo-bytes.php
+     * @throws \RuntimeException
      */
     public function getRandomInt()
     {
-        return mt_rand(0, $this->max);
+        $random = openssl_random_pseudo_bytes($this->bytes, $strong);
+        if ($random === null || ($this->forceStrong && !$strong)) {
+            throw new \RuntimeException(
+                'Random number generator algorithm didn\'t used "cryptographically strong" method.'
+            );
+        }
+
+        return hexdec(bin2hex($random));
     }
 
 }

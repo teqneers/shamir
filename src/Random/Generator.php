@@ -7,7 +7,8 @@ namespace TQ\Shamir\Random;
  *
  * @package TQ\Shamir\Random
  */
-interface Generator {
+interface Generator
+{
     /**
      * Returns a random number
      *

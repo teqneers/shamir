@@ -55,7 +55,7 @@ class ShareCommand extends Command
             $helper = $this->getHelper('question');
 
             $question = new Question('<question>The secret to share</question>: ');
-            $secret   = $helper->ask($input, $output, $question);
+            $secret = $helper->ask($input, $output, $question);
 
             $question = new Question(
                 '<question>Number of shared secrets to create</question> <comment>[3]</comment>: ', 3
@@ -94,7 +94,7 @@ class ShareCommand extends Command
 
         /** @var FormatterHelper $formatter */
         $formatter = $this->getHelper('formatter');
-        $block     = $formatter->formatBlock($shared, 'info', true);
+        $block = $formatter->formatBlock($shared, 'info', true);
         $output->writeln($block);
     }
 

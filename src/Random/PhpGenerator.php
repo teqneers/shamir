@@ -22,7 +22,7 @@ class PhpGenerator implements Generator
      *
      * @var int
      */
-    protected $min = 0;
+    protected $min = 1;
 
     /**
      * Constructor
@@ -30,10 +30,10 @@ class PhpGenerator implements Generator
      * @param int $max The maximum random number
      * @param int $min The minimum random number
      */
-    public function __construct($max = PHP_INT_MAX, $min = 0)
+    public function __construct($max = PHP_INT_MAX, $min = 1)
     {
-        $this->max = (int)$max;
         $this->min = (int)$min;
+        $this->max = (int)$max;
     }
 
     /**
@@ -41,7 +41,14 @@ class PhpGenerator implements Generator
      */
     public function getRandomInt()
     {
-        return mt_rand(0, $this->max);
+        $random = mt_rand($this->min, $this->max);
+        if ($random === false ) {
+            throw new \RuntimeException(
+                'Random number generator algorithm failed.'
+            );
+
+        }
+        return $random;
     }
 
 }

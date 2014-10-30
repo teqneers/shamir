@@ -108,8 +108,8 @@ class Secret
     /**
      * Generate shared secrets
      *
-     * @param    string  $secret    Secret
-     * @param    integer $shares    Number of parts to share
+     * @param    string $secret Secret
+     * @param    integer $shares Number of parts to share
      * @param    integer $threshold Minimum number of shares required for decryption
      * @return  array               Secret shares
      * @throws \OutOfBoundsException
