@@ -29,7 +29,14 @@ class Shamir implements Algorithm, RandomGeneratorAware
      *
      * @const string
      */
-    const CHARS = '0123456789abcdefghijklmnopqrstuvwxyz';
+    const CHARS = '0123456789abcdefghijklmnopqrstuvwxyz.,:;!?*#%';
+
+    /**
+     * Character to fill up the secret keys
+     *
+     * @const string
+     */
+    const PAD_CHAR = '=';
 
     /**
      * Prime number has to be greater than 256
@@ -113,7 +120,7 @@ class Shamir implements Algorithm, RandomGeneratorAware
                 $y = $this->modulo(86 * $y);
             }
         }
-        print_r($this->invTab);
+//        print_r($this->invTab);
 
         return $this->invTab;
     }
@@ -154,7 +161,7 @@ class Shamir implements Algorithm, RandomGeneratorAware
             }
 
             if ($temp == 0) {
-                /* Repeated share. */
+                /* Repeated share */
                 throw new \RuntimeException('Repeated share detected - cannot compute reverse-coefficients');
             }
 
@@ -266,18 +273,28 @@ class Shamir implements Algorithm, RandomGeneratorAware
      */
     protected function setMaxShares($max)
     {
+        // the prime number has to be larger, than the maximum number
+        // representable by the number of bytes. so we always need one
+        // byte more for encryption. if someone wants to use 256 shares,
+        // we could encrypt 256 with a single byte, but due to encrypting
+        // with a bigger prime number, we will need to use 2 bytes.
 
-        $maxPosible = pow(2, PHP_INT_SIZE * 8 - 1);
-        if ($max >= $maxPosible) {
+        // max possible number of shares is the maximum number of bytes
+        // possible to be represented with max integer, but we always need
+        // to save one byte for encryption.
+        $maxPossible = 1 << (PHP_INT_SIZE - 1) * 8;
+
+        if ($max > $maxPossible) {
             // we are unable to provide more bytes-1 as supported by OS
             // because the prime number need to be higher than that, but
             // this would exceed OS int range.
             throw new \OutOfRangeException(
-                'Number of required keys has to be below ' . number_format(pow(2, PHP_INT_SIZE * 8 - 1)) . '.'
+                'Number of required keys has to be below ' . number_format($maxPossible) . '.'
             );
         }
 
-        // calculate how many bytes we need to represent this number
+        // calculate how many bytes we need to represent number of shares.
+        // e.g. everything less than 256 needs only a single byte.
         $bytes = ceil(log($max, 2) / 8);
         switch ($bytes) {
             case 1:
@@ -308,6 +325,8 @@ class Shamir implements Algorithm, RandomGeneratorAware
                 // 7 bytes: 72057594037927936
                 $prime = 72057594037928017;
                 break;
+            default:
+                throw new \OutOfRangeException('Prime with that many bytes are not implemented yet.');
         }
 
         $this->partSize = $bytes;
@@ -343,19 +362,31 @@ class Shamir implements Algorithm, RandomGeneratorAware
         return $return;
     }
 
+
+    /**
+     * Returns maximum length of converted string to new base
+     *
+     * Calculate the maximum length of a string, which can be
+     * represented with the number of given bytes and convert
+     * its base.
+     *
+     * @param   integer $bytes Bytes used to represent a string
+     * @return  integer Number of chars
+     */
+    protected function maxKeyLength($bytes)
+    {
+        $maxInt = pow(2, $bytes * 8);
+        $converted = self::convBase($maxInt, self::DECIMAL, self::CHARS);
+        return strlen($converted);
+    }
+
+
     /**
      * @inheritdoc
      */
     public function share($secret, $shares, $threshold = 2)
     {
         $this->setMaxShares($shares);
-
-        $a = self::convBase(123456789, self::DECIMAL, self::CHARS);
-        $b = self::convBase($a, self::CHARS, self::DECIMAL);
-        $c = self::convBase(str_repeat(substr(self::CHARS, -1), 4), self::CHARS, self::DECIMAL);
-//        var_dump($a);
-//        var_dump($b);
-//        var_dump($c);
 
         // check if number of shares is less than our prime, otherwise we have a security problem
         if ($shares >= $this->prime || $shares < 1) {
@@ -364,6 +395,10 @@ class Shamir implements Algorithm, RandomGeneratorAware
 
         if ($shares < $threshold) {
             throw new \OutOfRangeException('Threshold has to be between 0 and ' . $threshold . '.');
+        }
+
+        if (strpos(self::CHARS, self::PAD_CHAR) !== false) {
+            throw new \OutOfRangeException('Padding character must not be part of possible encryption chars.');
         }
 
         // divide secret into single bytes, which we encrypt one by one
@@ -378,22 +413,53 @@ class Shamir implements Algorithm, RandomGeneratorAware
                 $result[] = $this->hornerMethod($x, $coeffs);
             }
         }
+        unset($coeffs);
 
+
+        // encode number of bytes and threshold
+
+        // calculate the maximum length of key sequence number and threshold
+        $maxBaseLength = $this->maxKeyLength($this->partSize);
+        // in order to do a correct padding to the converted base, we need to use the first char of the base
+        $paddingChar = substr(self::CHARS, 0, 1);
+        // define prefix number using the number of bytes (hex), and a left padded string used for threshold (base converted)
+        $fixPrefixFormat = '%x%' . $paddingChar . $maxBaseLength . 's';
+        // prefix is going to be the same for all keys
+        $prefix = sprintf($fixPrefixFormat, $this->partSize, self::convBase($threshold, self::DECIMAL, self::CHARS));
 
         // convert y coordinates into hexadecimals shares
         $passwords = array();
-        for ($i = 0; $i < $shares; $i++) {
-            $key = sprintf("%02x%02x", $threshold, $i + 1);
-            for ($j = 0; $j < ceil(strlen($secret)/$this->partSize); $j++) {
-                $key .= str_pad(
-                    self::convBase($result[$j * $shares + $i], self::DECIMAL, self::CHARS),
-                    $this->partSize+1,
-                    0,
-                    STR_PAD_LEFT
-                );
+        $secretLen = strlen($secret);
+        $padding = $secretLen % $this->partSize;
+
+        for ($i = 0; $i < $shares; ++$i) {
+            $sequence = self::convBase(($i + 1), self::DECIMAL, self::CHARS);
+            $key = sprintf($prefix . '%' . $paddingChar . $maxBaseLength . 's', $sequence);
+
+            for ($j = 0; $j < $secretLen; $j += $this->partSize) {
+                $x = ceil($j / $this->partSize);
+
+                if ($j + $this->partSize <= $secretLen) {
+                    $key .= str_pad(
+                        self::convBase($result[$x * $shares + $i], self::DECIMAL, self::CHARS),
+                        $maxBaseLength,
+                        $paddingChar,
+                        STR_PAD_LEFT
+                    );
+                } else {
+                    // add padding to end of string, so we can strip it off while recovering the password
+                    // this is needed, because otherwise we would have NULL bytes at the end.
+                    $key .= str_pad(
+                        self::convBase($result[$x * $shares + $i], self::DECIMAL, self::CHARS),
+                        $maxBaseLength - $padding,    // reduce length by padding
+                        $paddingChar,
+                        STR_PAD_LEFT
+                    );
+                    $key .= str_repeat(self::PAD_CHAR, $padding);
+                }
 
             }
-            $passwords[] = substr($key, 0);
+            $passwords[] = $key;
         }
 
         return $passwords;
@@ -410,45 +476,69 @@ class Shamir implements Algorithm, RandomGeneratorAware
 
         $keyX = array();
         $keyY = array();
-        $keyLen = 0;
-        $threshold = 0;
+        $keyLen = null;
+        $threshold = null;
 
         foreach ($keys as $key) {
-            if ($threshold === 0) {
-                $threshold = (int)substr($key, 0, 2);
-            } elseif ($threshold != (int)substr($key, 0, 2)) {
+            $key = str_replace(self::PAD_CHAR, '', $key);
+
+            // extract "public" information of key: bytes, threshold, sequence
+
+            // first we need to find out the bytes to predict threshold and sequence length
+            $bytes = hexdec(substr($key, 0, 1));
+            // calculate the maximum length of key sequence number and threshold
+            $maxBaseLength = $this->maxKeyLength($bytes);
+
+            // define key format: bytes (hex), threshold, sequence, and key (except of bytes, all is base converted)
+            $keyFormat = '%1x%' . $maxBaseLength . 's%' . $maxBaseLength . 's%s';
+            list($bytes, $minimum, $sequence, $key) = sscanf($key, $keyFormat);
+            $minimum = self::convBase($minimum, self::CHARS, self::DECIMAL);
+            $sequence = self::convBase($sequence, self::CHARS, self::DECIMAL);
+
+            if ($threshold === null) {
+                $threshold = (int)$minimum;
+                $stepSize = $bytes + 1;
+            } elseif ($threshold != (int)$minimum) {
                 throw new \RuntimeException('Given keys are incompatible.');
-            } elseif ($threshold < count($keys)) {
+            } elseif ($threshold > count($keys)) {
                 throw new \RuntimeException('Not enough keys to disclose secret.');
             }
-            $keyX[] = (int)substr($key, 2, 2);
-            $key = substr($key, 4);
-            if ($keyLen === 0) {
+
+            $keyX[] = (int)$sequence;
+            if ($keyLen === null) {
                 $keyLen = strlen($key);
             } elseif ($keyLen != strlen($key)) {
                 throw new \RuntimeException('Given keys vary in key length.');
             }
-            for ($i = 0; $i < strlen($key); $i += 2) {
-                $keyY[] = self::convBase(substr($key, $i, 2), self::CHARS, self::DECIMAL);
+            for ($i = 0; $i < strlen($key); $i += $stepSize) {
+                $keyY[] = self::convBase(substr($key, $i, $stepSize), self::CHARS, self::DECIMAL);
             }
         }
 
-        $keyLen /= 2;
 
         $coefficients = $this->reverseCoefficients($keyX, $threshold);
-
-        $secret = "";
+        $keyLen /= $stepSize;
+        $secret = '';
         for ($i = 0; $i < $keyLen; $i++) {
             $temp = 0;
             for ($j = 0; $j < $threshold; $j++) {
+
                 $temp = $this->modulo(
                     $temp + $keyY[$keyLen * $j + $i] * $coefficients[$j]
                 );
             }
-            $secret .= chr($temp);
+            // convert each byte back into char
+            for ($byte = 1; $byte <= $bytes; ++$byte) {
+                $char = $temp % 256;
+                $secret .= chr($char);
+                $temp = ($temp - $char) / 256;
+            }
         }
 
-        return $secret;
+        // remove padding from secret (NULL bytes);
+        $padCount = substr_count(reset($keys), '=');
+
+        return substr($secret, 0, -1 * $padCount);
     }
 
 
