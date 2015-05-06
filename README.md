@@ -1,5 +1,9 @@
-Shamir's Secret Sharing - encrypt and share
-===========================================
+Shamir's Secret Sharing in PHP
+==============================
+
+Build status: [![Build Status](https://travis-ci.org/teqneers/shamir.svg)](https://travis-ci.org/teqneers/shamir)
+[![Scrutinizer Quality Score](https://scrutinizer-ci.com/g/teqneers/shamir/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/teqneers/shamir/badges/coverage.png?b=master)
+[![Code Coverage](https://scrutinizer-ci.com/g/teqneers/shamir/badges/coverage.png?b=master)](https://scrutinizer-ci.com/g/teqneers/shamir/badges/coverage.png?b=master)
 
 This is Shamir's Shared Secret implementation in PHP. It allows you to create shared secrets using the PHP classes or the CLI interface.
 
