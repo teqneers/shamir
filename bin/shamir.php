@@ -9,6 +9,5 @@ use TQ\Shamir\Console\ShareCommand;
 $command = new ShareCommand();
 $application = new Application('Shamir\'s Shared Secret CLI', '0.1.0');
 $application->add(new RecoverCommand());
-$application->add($command);
-$application->setDefaultCommand($command->getName());
+$application->add(new ShareCommand());
 $application->run();

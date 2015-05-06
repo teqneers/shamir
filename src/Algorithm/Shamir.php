@@ -20,6 +20,8 @@ class Shamir implements Algorithm, RandomGeneratorAware
     /**
      * Calculation base (decimal)
      *
+     * Changing this will invalid all previously created keys.
+     *
      * @const string
      */
     const DECIMAL = '0123456789';
@@ -27,9 +29,12 @@ class Shamir implements Algorithm, RandomGeneratorAware
     /**
      * Target base characters to be used in passwords (shares)
      *
+     * The more characters are used, the shorter the shares might get.
+     * Changing this will invalid all previously created keys.
+     *
      * @const string
      */
-    const CHARS = '0123456789abcdefghijklmnopqrstuvwxyz.,:;!?*#%';
+    const CHARS = '0123456789abcdefghijklmnopqrstuvwxyz.,:;-+*#%';
 
     /**
      * Character to fill up the secret keys
@@ -39,18 +44,17 @@ class Shamir implements Algorithm, RandomGeneratorAware
     const PAD_CHAR = '=';
 
     /**
-     * Prime number has to be greater than 256
+     * Prime number has to be greater than the maximum number of shares possible
      *
      * @var int
      */
-    protected $prime = 4294967311;
+    protected $prime = 257;
 
     /**
      * Part size in bytes
      *
-     * The secret will be divided in different by sizes.
-     * This value defines how many bytes will get encoded
-     * at once.
+     * The secret will be divided equally. This value defines the chunk size and
+     * how many bytes will get encoded at once.
      *
      * @var int
      */
@@ -390,11 +394,11 @@ class Shamir implements Algorithm, RandomGeneratorAware
 
         // check if number of shares is less than our prime, otherwise we have a security problem
         if ($shares >= $this->prime || $shares < 1) {
-            throw new \OutOfRangeException('Number of shares has to be between 0 and ' . $this->prime . '.');
+            throw new \OutOfRangeException('Number of shares has to be between 1 and ' . $this->prime . '.');
         }
 
         if ($shares < $threshold) {
-            throw new \OutOfRangeException('Threshold has to be between 0 and ' . $threshold . '.');
+            throw new \OutOfRangeException('Threshold has to be between 1 and ' . $shares . '.');
         }
 
         if (strpos(self::CHARS, self::PAD_CHAR) !== false) {
@@ -430,7 +434,8 @@ class Shamir implements Algorithm, RandomGeneratorAware
         // convert y coordinates into hexadecimals shares
         $passwords = array();
         $secretLen = strlen($secret);
-        $padding = $secretLen % $this->partSize;
+        // calculate how many bytes, we need to cut off during recovery
+        $tail = str_repeat(self::PAD_CHAR, $secretLen % $this->partSize);
 
         for ($i = 0; $i < $shares; ++$i) {
             $sequence = self::convBase(($i + 1), self::DECIMAL, self::CHARS);
@@ -439,27 +444,15 @@ class Shamir implements Algorithm, RandomGeneratorAware
             for ($j = 0; $j < $secretLen; $j += $this->partSize) {
                 $x = ceil($j / $this->partSize);
 
-                if ($j + $this->partSize <= $secretLen) {
-                    $key .= str_pad(
-                        self::convBase($result[$x * $shares + $i], self::DECIMAL, self::CHARS),
-                        $maxBaseLength,
-                        $paddingChar,
-                        STR_PAD_LEFT
-                    );
-                } else {
-                    // add padding to end of string, so we can strip it off while recovering the password
-                    // this is needed, because otherwise we would have NULL bytes at the end.
-                    $key .= str_pad(
-                        self::convBase($result[$x * $shares + $i], self::DECIMAL, self::CHARS),
-                        $maxBaseLength - $padding,    // reduce length by padding
-                        $paddingChar,
-                        STR_PAD_LEFT
-                    );
-                    $key .= str_repeat(self::PAD_CHAR, $padding);
-                }
-
+                $key .= str_pad(
+                    self::convBase($result[$x * $shares + $i], self::DECIMAL, self::CHARS),
+                    $maxBaseLength,
+                    $paddingChar,
+                    STR_PAD_LEFT
+                );
             }
-            $passwords[] = $key;
+
+            $passwords[] = $key.$tail;
         }
 
         return $passwords;
@@ -497,7 +490,6 @@ class Shamir implements Algorithm, RandomGeneratorAware
 
             if ($threshold === null) {
                 $threshold = (int)$minimum;
-                $stepSize = $bytes + 1;
             } elseif ($threshold != (int)$minimum) {
                 throw new \RuntimeException('Given keys are incompatible.');
             } elseif ($threshold > count($keys)) {
@@ -510,14 +502,15 @@ class Shamir implements Algorithm, RandomGeneratorAware
             } elseif ($keyLen != strlen($key)) {
                 throw new \RuntimeException('Given keys vary in key length.');
             }
-            for ($i = 0; $i < strlen($key); $i += $stepSize) {
-                $keyY[] = self::convBase(substr($key, $i, $stepSize), self::CHARS, self::DECIMAL);
+            for ($i = 0; $i < strlen($key); $i += $maxBaseLength) {
+                $keyY[] = self::convBase(substr($key, $i, $maxBaseLength), self::CHARS, self::DECIMAL);
             }
         }
 
 
         $coefficients = $this->reverseCoefficients($keyX, $threshold);
-        $keyLen /= $stepSize;
+        $keyLen /= $maxBaseLength;
+
         $secret = '';
         for ($i = 0; $i < $keyLen; $i++) {
             $temp = 0;
@@ -537,8 +530,11 @@ class Shamir implements Algorithm, RandomGeneratorAware
 
         // remove padding from secret (NULL bytes);
         $padCount = substr_count(reset($keys), '=');
+        if( $padCount ) {
+            $secret = substr($secret, 0, -1 * $padCount);
+        }
 
-        return substr($secret, 0, -1 * $padCount);
+        return $secret;
     }
 
 

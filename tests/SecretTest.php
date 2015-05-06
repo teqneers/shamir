@@ -65,4 +65,6 @@ class SecretTest extends \PHPUnit_Framework_TestCase
         }
         $this->assertSame($new, $algorithm->getRandomGenerator());
     }
+
+
 }

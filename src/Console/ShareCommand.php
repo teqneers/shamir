@@ -30,16 +30,16 @@ class ShareCommand extends Command
             InputArgument::OPTIONAL,
             'The secret to share'
         )->addOption(
-            'number',
-            null,
+            'shares',
+            's',
             InputOption::VALUE_OPTIONAL,
             'The number of shared secrets to generate',
             3
         )->addOption(
-            'quorum',
-            null,
+            'threshold',
+            't',
             InputOption::VALUE_OPTIONAL,
-            'The number of shared secrets required to recover',
+            'The minimum number of shared secrets required to recover',
             2
         );
     }
@@ -69,7 +69,7 @@ class ShareCommand extends Command
                     return (int)$a;
                 }
             );
-            $number = $helper->ask($input, $output, $question);
+            $shares = $helper->ask($input, $output, $question);
 
             $question = new Question(
                 '<question>Number of shared secrets required</question> <comment>[2]</comment>: ', 2
@@ -83,14 +83,14 @@ class ShareCommand extends Command
                     return (int)$a;
                 }
             );
-            $quorum = $helper->ask($input, $output, $question);
+            $threshold = $helper->ask($input, $output, $question);
         } else {
-            $number = $input->getOption('number');
-            $quorum = $input->getOption('quorum');
+            $shares = $input->getOption('shares');
+            $threshold = $input->getOption('threshold');
         }
 
 
-        $shared = Secret::share($secret, $number, $quorum);
+        $shared = Secret::share($secret, $shares, $threshold);
 
         /** @var FormatterHelper $formatter */
         $formatter = $this->getHelper('formatter');
