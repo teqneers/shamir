@@ -68,20 +68,11 @@ class Shamir implements Algorithm, RandomGeneratorAware
     protected $randomGenerator;
 
     /**
-     * Cache of the inverse table
+     * Maximum number of shares required
      *
-     * @var array
+     * @var float
      */
-    protected $invTab;
-
-
-    /**
-     * @inheritdoc
-     */
-    public function setRandomGenerator(Generator $generator)
-    {
-        $this->randomGenerator = $generator;
-    }
+    protected $maxShares = 3;
 
 
     /**
@@ -98,6 +89,137 @@ class Shamir implements Algorithm, RandomGeneratorAware
 
 
     /**
+     * @inheritdoc
+     * @return  Shamir
+     */
+    public function setRandomGenerator(Generator $generator)
+    {
+        $this->randomGenerator = $generator;
+
+        return $this;
+    }
+
+
+    /**
+     * Returns chunk size in bytes
+     *
+     * @return int
+     */
+    public function getChunkSize()
+    {
+        return $this->chunkSize;
+    }
+
+    /**
+     * Sets chunk size in bytes
+     *
+     * If maximum shares have been set already, the chunk
+     * size might have been set with it. It is not possible
+     * to set a smaller size than required by shares.
+     *
+     * @see
+     * @param   int $chunkSize Size in number of bytes
+     * @return  Shamir
+     * @throws  \OutOfRangeException
+     */
+    public function setChunkSize($chunkSize)
+    {
+        $chunkSize = (int)$chunkSize;
+
+        // if chunk size has been set already, we will only increase it, if necessary
+        switch ($chunkSize) {
+            case 1:
+                // 1 byte needed: 256
+                $prime = 257;
+                break;
+            case 2:
+                // 2 bytes needed: 65536
+                $prime = 65537;
+                break;
+            case 3:
+                // 3 bytes needed: 16777216
+                $prime = 16777259;
+                break;
+            case 4:
+                // 4 bytes needed: 4294967296
+                $prime = 4294967311;
+                break;
+            case 5:
+                // 5 bytes needed: 1099511627776
+                $prime = 1099511627791;
+                break;
+            case 6:
+                // 6 bytes needed: 281474976710656
+                $prime = 281474976710677;
+                break;
+            case 7:
+                // 7 bytes needed: 72057594037927936
+                $prime = 72057594037928017;
+                break;
+            default:
+                throw new \OutOfRangeException('Chunk sizes with that many bytes are not implemented yet.');
+        }
+
+        $this->chunkSize = $chunkSize;
+        $this->prime = $prime;
+
+        return $this;
+    }
+
+
+    /**
+     * Configure encoding parameters
+     *
+     * Depending on the number of required shares, we need to change
+     * prime number, key length, chunk size and more.
+     *
+     * If the chunk size has been set already, it will be changed, if
+     * it is smaller than the necessary size.
+     *
+     * @see     setChunkSize()
+     * @param   int $max Maximum number of keys needed
+     * @return  Shamir
+     * @throws  \OutOfRangeException
+     */
+    protected function setMaxShares($max)
+    {
+        // the prime number has to be larger, than the maximum number
+        // representable by the number of bytes. so we always need one
+        // byte more for encryption. if someone wants to use 256 shares,
+        // we could encrypt 256 with a single byte, but due to encrypting
+        // with a bigger prime number, we will need to use 2 bytes.
+
+        // max possible number of shares is the maximum number of bytes
+        // possible to be represented with max integer, but we always need
+        // to save one byte for encryption.
+        $maxPossible = 1 << (PHP_INT_SIZE - 1) * 8;
+
+        if ($max > $maxPossible) {
+            // we are unable to provide more bytes-1 as supported by OS
+            // because the prime number need to be higher than that, but
+            // this would exceed OS int range.
+            throw new \OutOfRangeException(
+                'Number of required keys has to be below ' . number_format($maxPossible) . '.'
+            );
+        }
+
+        // calculate how many bytes we need to represent number of shares.
+        // e.g. everything less than 256 needs only a single byte.
+        $chunkSize = (int)ceil(log($max, 2) / 8);
+        // if chunk size has been set already, we will only increase it, if necessary
+        $chunkSize = max($chunkSize, $this->chunkSize);
+
+        if ($chunkSize > $this->chunkSize) {
+            $this->setChunkSize($chunkSize);
+        }
+
+        $this->maxShares = $max;
+
+        return $this;
+    }
+
+
+    /**
      * Calculate modulo of any given number using prime
      *
      * @param   integer     Number
@@ -105,7 +227,7 @@ class Shamir implements Algorithm, RandomGeneratorAware
      */
     protected function modulo($number)
     {
-        $modulo = bcmod( $number, $this->prime);
+        $modulo = bcmod($number, $this->prime);
 
         return ($modulo < 0) ? bcadd($modulo, $this->prime) : $modulo;
     }
@@ -271,78 +393,6 @@ class Shamir implements Algorithm, RandomGeneratorAware
 
 
     /**
-     * Configure encoding parameters
-     *
-     * Depending on the number of required keys, we need to change
-     * prime number, key length and more
-     *
-     * @param   int $max Maximum number of keys needed
-     * @throws  \OutOfRangeException
-     */
-    protected function setMaxShares($max)
-    {
-        // the prime number has to be larger, than the maximum number
-        // representable by the number of bytes. so we always need one
-        // byte more for encryption. if someone wants to use 256 shares,
-        // we could encrypt 256 with a single byte, but due to encrypting
-        // with a bigger prime number, we will need to use 2 bytes.
-
-        // max possible number of shares is the maximum number of bytes
-        // possible to be represented with max integer, but we always need
-        // to save one byte for encryption.
-        $maxPossible = 1 << (PHP_INT_SIZE - 1) * 8;
-
-        if ($max > $maxPossible) {
-            // we are unable to provide more bytes-1 as supported by OS
-            // because the prime number need to be higher than that, but
-            // this would exceed OS int range.
-            throw new \OutOfRangeException(
-                'Number of required keys has to be below ' . number_format($maxPossible) . '.'
-            );
-        }
-
-        // calculate how many bytes we need to represent number of shares.
-        // e.g. everything less than 256 needs only a single byte.
-        $bytes = (int)ceil(log($max, 2) / 8);
-        switch ($bytes) {
-            case 1:
-                // 1 byte needed: 256
-                $prime = 257;
-                break;
-            case 2:
-                // 2 bytes needed: 65536
-                $prime = 65537;
-                break;
-            case 3:
-                // 3 bytes needed: 16777216
-                $prime = 16777259;
-                break;
-            case 4:
-                // 4 bytes needed: 4294967296
-                $prime = 4294967311;
-                break;
-            case 5:
-                // 5 bytes needed: 1099511627776
-                $prime = 1099511627791;
-                break;
-            case 6:
-                // 6 bytes needed: 281474976710656
-                $prime = 281474976710677;
-                break;
-            case 7:
-                // 7 bytes needed: 72057594037927936
-                $prime = 72057594037928017;
-                break;
-            default:
-                throw new \OutOfRangeException('Prime with that many bytes are not implemented yet.');
-        }
-
-        $this->chunkSize = $bytes;
-        $this->prime = $prime;
-    }
-
-
-    /**
      * Unpack a binary string and convert it into decimals
      *
      * Convert each chunk of a binary data into decimal numbers.
@@ -397,7 +447,8 @@ class Shamir implements Algorithm, RandomGeneratorAware
      * @param   integer $threshold Minimum number of shares required for decryption
      * @return  array
      */
-    protected function divideSecret($secret, $shares, $threshold) {
+    protected function divideSecret($secret, $shares, $threshold)
+    {
         // divide secret into chunks, which we encrypt one by one
         $result = array();
 
@@ -491,7 +542,8 @@ class Shamir implements Algorithm, RandomGeneratorAware
      * @param integer $threshold Minimum number of shares required for decryption
      * @return string
      */
-    protected function joinSecret($keyX, $keyY, $bytes, $keyLen, $threshold) {
+    protected function joinSecret($keyX, $keyY, $bytes, $keyLen, $threshold)
+    {
         $coefficients = $this->reverseCoefficients($keyX, $threshold);
 
         $secret = '';
@@ -581,6 +633,5 @@ class Shamir implements Algorithm, RandomGeneratorAware
 
         return $secret;
     }
-
 
 }
