@@ -83,6 +83,16 @@ class SecretTest extends \PHPUnit_Framework_TestCase
 
         $recover = Secret::recover( array_slice( $shares, 5, 4) );
         $this->assertSame($secret, $recover);
+
+        // test different length of secret
+        $template = 'abcdefghijklmnopqrstuvwxyz';
+        for ($i = 1; $i <= 8; ++$i) {
+            $secret = substr($template, 0, $i);
+            $shares = Secret::share($secret, 3, 2);
+
+            $recover = Secret::recover(array_slice($shares, 0, 2));
+            $this->assertSame($secret, $recover);
+        }
     }
 
     public function testShareAndRecoverTwoBytes()
@@ -102,8 +112,49 @@ class SecretTest extends \PHPUnit_Framework_TestCase
 
         $recover = Secret::recover( array_slice( $shares, 6, 4) );
         $this->assertSame($secret, $recover);
+
+        // test different length of secret
+        $template = 'abcdefghijklmnopqrstuvwxyz';
+        for ($i = 1; $i <= 8; ++$i) {
+            $secret = substr($template, 0, $i);
+            $shares = Secret::share($secret, 260, 2);
+
+            $recover = Secret::recover(array_slice($shares, 0, 2));
+            $this->assertSame($secret, $recover);
+        }
+
     }
 
+    public function testShareAndRecoverThreeBytes()
+    {
+        $secret = 'abc ABC 123 !@# ,./ \'"\\ <>?';
+
+        $shares = Secret::share($secret, 66000, 2);
+
+        $recover = Secret::recover( array_slice( $shares, 0, 2) );
+        $this->assertSame($secret, $recover);
+
+        $recover = Secret::recover( array_slice( $shares, 2, 2) );
+        $this->assertSame($secret, $recover);
+
+        $recover = Secret::recover( array_slice( $shares, 4, 2) );
+        $this->assertSame($secret, $recover);
+
+        $recover = Secret::recover( array_slice( $shares, 6, 4) );
+        $this->assertSame($secret, $recover);
+
+        // test different length of secret
+        $template = 'abcdefghijklmnopqrstuvwxyz';
+        for ($i = 1; $i <= 8; ++$i) {
+            $secret = substr($template, 0, $i);
+            $shares = Secret::share($secret, 66000, 2);
+
+            $recover = Secret::recover(array_slice($shares, 0, 2));
+            $this->assertSame($secret, $recover);
+        }
+
+
+    }
 
 
 }

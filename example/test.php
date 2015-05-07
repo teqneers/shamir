@@ -4,11 +4,22 @@ require_once __DIR__ . '/../vendor/autoload.php';
 
 use TQ\Shamir\Secret;
 
-$shares = Secret::share('Shamir\'s Shared Secret Implementation in PHP', 5, 2);
+//$shares = Secret::share('Shamir\'s Shared Secret Implementation in PHP', 5, 2);
+
+//$shares = Secret::share('S', 5, 2);
+//var_dump(Secret::recover(array_slice($shares, 0, 2)));
+//$shares = Secret::share('Sh', 5, 2);
+//var_dump(Secret::recover(array_slice($shares, 0, 2)));
+$shares = Secret::share('Sha', 3, 2);
+//var_dump(Secret::recover(array_slice($shares, 0, 2)));
+//$shares = Secret::share('Sham', 5, 2);
+//var_dump(Secret::recover(array_slice($shares, 0, 2)));
+//$shares = Secret::share('Shami', 5, 2);
+//var_dump(Secret::recover(array_slice($shares, 0, 2)));
 
 var_dump($shares);
 
 var_dump(Secret::recover(array_slice($shares, 0, 2)));
-var_dump(Secret::recover(array_slice($shares, 1, 3)));
+//var_dump(Secret::recover(array_slice($shares, 1, 3)));
 
 

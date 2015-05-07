@@ -16,7 +16,7 @@ interface Algorithm
      * @param   integer $shares Number of parts to share
      * @param   integer $threshold Minimum number of shares required for decryption
      * @return  array               Secret shares
-     * @throws  \OutOfBoundsException
+     * @throws  \OutOfRangeException
      */
     public function share($secret, $shares, $threshold = 2);
 

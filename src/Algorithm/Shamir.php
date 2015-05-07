@@ -22,7 +22,7 @@ class Shamir implements Algorithm, RandomGeneratorAware
      *
      * Changing this will invalid all previously created keys.
      *
-     * @const string
+     * @const   string
      */
     const DECIMAL = '0123456789';
 
@@ -32,14 +32,14 @@ class Shamir implements Algorithm, RandomGeneratorAware
      * The more characters are used, the shorter the shares might get.
      * Changing this will invalid all previously created keys.
      *
-     * @const string
+     * @const   string
      */
     const CHARS = '0123456789abcdefghijklmnopqrstuvwxyz.,:;-+*#%';
 
     /**
      * Character to fill up the secret keys
      *
-     * @const string
+     * @const   string
      */
     const PAD_CHAR = '=';
 
@@ -83,6 +83,7 @@ class Shamir implements Algorithm, RandomGeneratorAware
         $this->randomGenerator = $generator;
     }
 
+
     /**
      * @inheritdoc
      */
@@ -94,6 +95,7 @@ class Shamir implements Algorithm, RandomGeneratorAware
 
         return $this->randomGenerator;
     }
+
 
     /**
      * Calculate modulo of any given number using prime
@@ -107,6 +109,7 @@ class Shamir implements Algorithm, RandomGeneratorAware
 
         return ($modulo < 0) ? bcadd($modulo, $this->prime) : $modulo;
     }
+
 
     /**
      * Calculate greatest common divisor (Euclid algorithm)
@@ -138,6 +141,7 @@ class Shamir implements Algorithm, RandomGeneratorAware
 
         return bcmod(bcadd($this->prime, $r), $this->prime);
     }
+
 
     /**
      * Calculates the reverse coefficients
@@ -172,8 +176,9 @@ class Shamir implements Algorithm, RandomGeneratorAware
         return $coefficients;
     }
 
+
     /**
-     * Generate random coefficient
+     * Generate random coefficients
      *
      * @param   integer $threshold Number of coefficients needed
      * @return  array
@@ -191,6 +196,7 @@ class Shamir implements Algorithm, RandomGeneratorAware
 
         return $coefficients;
     }
+
 
     /**
      * Calculate y values of polynomial curve using horner's method
@@ -214,6 +220,7 @@ class Shamir implements Algorithm, RandomGeneratorAware
 
         return $y;
     }
+
 
     /**
      * Converts from $fromBaseInput to $toBaseInput
@@ -308,7 +315,7 @@ class Shamir implements Algorithm, RandomGeneratorAware
                 break;
             case 3:
                 // 3 bytes needed: 16777216
-                $prime = 1677727;
+                $prime = 16777259;
                 break;
             case 4:
                 // 4 bytes needed: 4294967296
@@ -331,12 +338,7 @@ class Shamir implements Algorithm, RandomGeneratorAware
         }
 
         $this->chunkSize = $bytes;
-//$this->chunkSize = 3;
-//$this->chunkSize = 4;
-
         $this->prime = $prime;
-//$this->prime = 1677727;
-//$this->prime = 4294967311;
     }
 
 
@@ -388,6 +390,33 @@ class Shamir implements Algorithm, RandomGeneratorAware
 
 
     /**
+     * Divide secret into chunks and calculate coordinates
+     *
+     * @param   string $secret Secret
+     * @param   integer $shares Number of parts to share
+     * @param   integer $threshold Minimum number of shares required for decryption
+     * @return  array
+     */
+    protected function divideSecret($secret, $shares, $threshold) {
+        // divide secret into chunks, which we encrypt one by one
+        $result = array();
+
+        foreach ($this->unpack($secret) as $bytes) {
+            $coeffs = $this->generateCoefficients($threshold);
+            $coeffs[] = $bytes;
+
+            // go through x coordinates and calculate y value
+            for ($x = 1; $x <= $shares; $x++) {
+                // use horner method to calculate y value
+                $result[] = $this->hornerMethod($x, $coeffs);
+            }
+        }
+
+        return $result;
+    }
+
+
+    /**
      * @inheritdoc
      */
     public function share($secret, $shares, $threshold = 2)
@@ -408,20 +437,7 @@ class Shamir implements Algorithm, RandomGeneratorAware
         }
 
         // divide secret into chunks, which we encrypt one by one
-        $result = array();
-
-        foreach ($this->unpack($secret) as $bytes) {
-            $coeffs = $this->generateCoefficients($threshold);
-            $coeffs[] = $bytes;
-
-            // go through x coordinates and calculate y value
-            for ($x = 1; $x <= $shares; $x++) {
-                // use horner method to calculate y value
-                $result[] = $this->hornerMethod($x, $coeffs);
-            }
-        }
-        unset($coeffs);
-
+        $result = $this->divideSecret($secret, $shares, $threshold);
 
         // encode number of bytes and threshold
 
@@ -438,17 +454,20 @@ class Shamir implements Algorithm, RandomGeneratorAware
         $passwords = array();
         $secretLen = strlen($secret);
         // calculate how many bytes, we need to cut off during recovery
-        $tail = str_repeat(self::PAD_CHAR, $secretLen % $this->chunkSize);
+        if ($secretLen % $this->chunkSize > 0) {
+            $tail = str_repeat(self::PAD_CHAR, $this->chunkSize - $secretLen % $this->chunkSize);
+        } else {
+            $tail = '';
+        }
 
+        $chunks = ceil($secretLen / $this->chunkSize);
         for ($i = 0; $i < $shares; ++$i) {
             $sequence = self::convBase(($i + 1), self::DECIMAL, self::CHARS);
             $key = sprintf($prefix . '%' . $paddingChar . $maxBaseLength . 's', $sequence);
 
-            for ($j = 0; $j < $secretLen; $j += $this->chunkSize) {
-                $x = ceil($j / $this->chunkSize);
-
+            for ($j = 0; $j < $chunks; ++$j) {
                 $key .= str_pad(
-                    self::convBase($result[$x * $shares + $i], self::DECIMAL, self::CHARS),
+                    self::convBase($result[$j * $shares + $i], self::DECIMAL, self::CHARS),
                     $maxBaseLength,
                     $paddingChar,
                     STR_PAD_LEFT
@@ -460,6 +479,41 @@ class Shamir implements Algorithm, RandomGeneratorAware
 
         return $passwords;
     }
+
+
+    /**
+     * Decode and merge secret chunks
+     *
+     * @param array $keyX Keys for X coordinates
+     * @param array $keyY Keys for Y coordinates
+     * @param integer $bytes Chunk size in bytes
+     * @param integer $keyLen Key length in chunks
+     * @param integer $threshold Minimum number of shares required for decryption
+     * @return string
+     */
+    protected function joinSecret($keyX, $keyY, $bytes, $keyLen, $threshold) {
+        $coefficients = $this->reverseCoefficients($keyX, $threshold);
+
+        $secret = '';
+        for ($i = 0; $i < $keyLen; $i++) {
+            $temp = 0;
+            for ($j = 0; $j < $threshold; $j++) {
+
+                $temp = $this->modulo(
+                    bcadd($temp, bcmul($keyY[$j * $keyLen + $i], $coefficients[$j]))
+                );
+            }
+            // convert each byte back into char
+            for ($byte = 1; $byte <= $bytes; ++$byte) {
+                $char = bcmod($temp, 256);
+                $secret .= chr($char);
+                $temp = bcdiv(bcsub($temp, $char), 256);
+            }
+        }
+
+        return $secret;
+    }
+
 
     /**
      * @inheritdoc
@@ -510,31 +564,14 @@ class Shamir implements Algorithm, RandomGeneratorAware
             } elseif ($keyLen != strlen($key)) {
                 throw new \RuntimeException('Given keys vary in key length.');
             }
-            for ($i = 0; $i < strlen($key); $i += $maxBaseLength) {
+            for ($i = 0; $i < $keyLen; $i += $maxBaseLength) {
                 $keyY[] = self::convBase(substr($key, $i, $maxBaseLength), self::CHARS, self::DECIMAL);
             }
         }
 
 
-        $coefficients = $this->reverseCoefficients($keyX, $threshold);
         $keyLen /= $maxBaseLength;
-
-        $secret = '';
-        for ($i = 0; $i < $keyLen; $i++) {
-            $temp = 0;
-            for ($j = 0; $j < $threshold; $j++) {
-
-                $temp = $this->modulo(
-                    $temp + $keyY[$keyLen * $j + $i] * $coefficients[$j]
-                );
-            }
-            // convert each byte back into char
-            for ($byte = 1; $byte <= $bytes; ++$byte) {
-                $char = $temp % 256;
-                $secret .= chr($char);
-                $temp = ($temp - $char) / 256;
-            }
-        }
+        $secret = $this->joinSecret($keyX, $keyY, $bytes, $keyLen, $threshold);
 
         // remove padding from secret (NULL bytes);
         $padCount = substr_count(reset($keys), '=');
