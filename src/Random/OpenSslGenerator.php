@@ -46,7 +46,7 @@ class OpenSslGenerator implements Generator
     public function getRandomInt()
     {
         $random = openssl_random_pseudo_bytes($this->bytes, $strong);
-        if ($random === null || ($this->forceStrong && !$strong)) {
+        if ($random === null || ($this->forceStrong && $strong !== true)) {
             throw new \RuntimeException(
                 'Random number generator algorithm didn\'t used "cryptographically strong" method.'
             );

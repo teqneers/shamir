@@ -124,7 +124,6 @@ class Shamir implements Algorithm, RandomGeneratorAware
                 $y = $this->modulo(86 * $y);
             }
         }
-//        print_r($this->invTab);
 
         return $this->invTab;
     }
@@ -299,34 +298,34 @@ class Shamir implements Algorithm, RandomGeneratorAware
 
         // calculate how many bytes we need to represent number of shares.
         // e.g. everything less than 256 needs only a single byte.
-        $bytes = ceil(log($max, 2) / 8);
+        $bytes = (int)ceil(log($max, 2) / 8);
         switch ($bytes) {
             case 1:
-                // 256
+                // 1 byte needed: 256
                 $prime = 257;
                 break;
             case 2:
-                // 2 bytes: 65536
+                // 2 bytes needed: 65536
                 $prime = 65537;
                 break;
             case 3:
-                // 3 bytes: 16777216
+                // 3 bytes needed: 16777216
                 $prime = 1677727;
                 break;
             case 4:
-                // 4 bytes: 4294967296
+                // 4 bytes needed: 4294967296
                 $prime = 4294967311;
                 break;
             case 5:
-                // 5 bytes: 1099511627776
+                // 5 bytes needed: 1099511627776
                 $prime = 1099511627791;
                 break;
             case 6:
-                // 6 bytes: 281474976710656
+                // 6 bytes needed: 281474976710656
                 $prime = 281474976710677;
                 break;
             case 7:
-                // 7 bytes: 72057594037927936
+                // 7 bytes needed: 72057594037927936
                 $prime = 72057594037928017;
                 break;
             default:
@@ -472,36 +471,40 @@ class Shamir implements Algorithm, RandomGeneratorAware
         $keyLen = null;
         $threshold = null;
 
-        foreach ($keys as $key) {
-            $key = str_replace(self::PAD_CHAR, '', $key);
+        // analyse first key
+        $key = reset($keys);
+        // first we need to find out the bytes to predict threshold and sequence length
+        $bytes = hexdec(substr($key, 0, 1));
+        // calculate the maximum length of key sequence number and threshold
+        $maxBaseLength = $this->maxKeyLength($bytes);
+        // define key format: bytes (hex), threshold, sequence, and key (except of bytes, all is base converted)
+        $keyFormat = '%1x%' . $maxBaseLength . 's%' . $maxBaseLength . 's%s';
 
+        foreach ($keys as $key) {
             // extract "public" information of key: bytes, threshold, sequence
 
-            // first we need to find out the bytes to predict threshold and sequence length
-            $bytes = hexdec(substr($key, 0, 1));
-            // calculate the maximum length of key sequence number and threshold
-            $maxBaseLength = $this->maxKeyLength($bytes);
-
-            // define key format: bytes (hex), threshold, sequence, and key (except of bytes, all is base converted)
-            $keyFormat = '%1x%' . $maxBaseLength . 's%' . $maxBaseLength . 's%s';
-            list($bytes, $minimum, $sequence, $key) = sscanf($key, $keyFormat);
-            $minimum = self::convBase($minimum, self::CHARS, self::DECIMAL);
-            $sequence = self::convBase($sequence, self::CHARS, self::DECIMAL);
+            list($keyBytes, $keyThreshold, $keySequence, $key) = sscanf($key, $keyFormat);
+            $keyThreshold = (int)self::convBase($keyThreshold, self::CHARS, self::DECIMAL);
+            $keySequence = (int)self::convBase($keySequence, self::CHARS, self::DECIMAL);
 
             if ($threshold === null) {
-                $threshold = (int)$minimum;
-            } elseif ($threshold != (int)$minimum) {
+                $threshold = $keyThreshold;
+
+                if ($threshold > count($keys)) {
+                    throw new \RuntimeException('Not enough keys to disclose secret.');
+                }
+            } elseif ($threshold != $keyThreshold || $bytes != hexdec($keyBytes)) {
                 throw new \RuntimeException('Given keys are incompatible.');
-            } elseif ($threshold > count($keys)) {
-                throw new \RuntimeException('Not enough keys to disclose secret.');
             }
 
-            $keyX[] = (int)$sequence;
+            $keyX[] = $keySequence;
             if ($keyLen === null) {
                 $keyLen = strlen($key);
             } elseif ($keyLen != strlen($key)) {
                 throw new \RuntimeException('Given keys vary in key length.');
             }
+            // remove trailing padding characters
+            $key = str_replace(self::PAD_CHAR, '', $key);
             for ($i = 0; $i < strlen($key); $i += $maxBaseLength) {
                 $keyY[] = self::convBase(substr($key, $i, $maxBaseLength), self::CHARS, self::DECIMAL);
             }
