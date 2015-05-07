@@ -7,7 +7,7 @@ Build status: [![Build Status](https://travis-ci.org/teqneers/shamir.svg)](https
 
 This is Shamir's Shared Secret implementation in PHP. It allows you to create shared secrets using the PHP classes or the CLI interface.
 
-The cryptographic algorithm was create by the famous Adi Shamir, who also provided his name to the Rivest-__Shamir__-Adleman cryptosystem (R__S__A). The Shared Secret algorithm allows to divide a secret into parts (called shares). Each part can be handed out to a person or organization. The nice thing about this algorithm is, that some or all parts are needed to reconstruct the secret (called threshold). Most important about a secure way of [sharing a secret](http://en.wikipedia.org/wiki/Secret_sharing) is, that it complies to the following requirement:
+The cryptographic algorithm was create by the famous Adi Shamir, who also provided his name to the Rivest-__Shamir__-Adleman cryptosystem (RSA). The Shared Secret algorithm allows to divide a secret into parts (called shares). Each part can be handed out to a person or organization. The nice thing about this algorithm is, that some or all parts are needed to reconstruct the secret (called threshold). Most important about a secure way of [sharing a secret](http://en.wikipedia.org/wiki/Secret_sharing) is, that it complies to the following requirement:
 
 * exposure of one share does NOT expose any more hints to an attacker
 * pre defined number of shares are required to obtain secret
@@ -20,7 +20,7 @@ This implementation can handle more than 256 shares and encodes the results in a
 Usage
 =====
 
-```shell
+```bash
 # bin/shamir.php
 Shamir's Shared Secret CLI version 0.1.0
 

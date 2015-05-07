@@ -11,3 +11,4 @@ var_dump($shares);
 var_dump(Secret::recover(array_slice($shares, 0, 2)));
 var_dump(Secret::recover(array_slice($shares, 1, 3)));
 
+

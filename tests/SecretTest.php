@@ -66,5 +66,43 @@ class SecretTest extends \PHPUnit_Framework_TestCase
         $this->assertSame($new, $algorithm->getRandomGenerator());
     }
 
+    public function testShareAndRecoverOneByte()
+    {
+        $secret = 'abc ABC 123 !@# ,./ \'"\\ <>?';
+
+        $shares = Secret::share($secret, 10, 2);
+
+        $recover = Secret::recover( array_slice( $shares, 0, 2) );
+        $this->assertSame($secret, $recover);
+
+        $recover = Secret::recover( array_slice( $shares, 2, 2) );
+        $this->assertSame($secret, $recover);
+
+        $recover = Secret::recover( array_slice( $shares, 4, 2) );
+        $this->assertSame($secret, $recover);
+
+        $recover = Secret::recover( array_slice( $shares, 6, 4) );
+        $this->assertSame($secret, $recover);
+    }
+
+    public function testShareAndRecoverTwoBytes()
+    {
+        $secret = 'abc ABC 123 !@# ,./ \'"\\ <>?';
+
+        $shares = Secret::share($secret, 260, 2);
+
+        $recover = Secret::recover( array_slice( $shares, 0, 2) );
+        $this->assertSame($secret, $recover);
+
+        $recover = Secret::recover( array_slice( $shares, 2, 2) );
+        $this->assertSame($secret, $recover);
+
+        $recover = Secret::recover( array_slice( $shares, 4, 2) );
+        $this->assertSame($secret, $recover);
+
+        $recover = Secret::recover( array_slice( $shares, 6, 4) );
+        $this->assertSame($secret, $recover);
+    }
+
 
 }
