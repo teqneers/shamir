@@ -81,7 +81,7 @@ class SecretTest extends \PHPUnit_Framework_TestCase
         $recover = Secret::recover( array_slice( $shares, 4, 2) );
         $this->assertSame($secret, $recover);
 
-        $recover = Secret::recover( array_slice( $shares, 6, 4) );
+        $recover = Secret::recover( array_slice( $shares, 5, 4) );
         $this->assertSame($secret, $recover);
     }
 
@@ -103,6 +103,7 @@ class SecretTest extends \PHPUnit_Framework_TestCase
         $recover = Secret::recover( array_slice( $shares, 6, 4) );
         $this->assertSame($secret, $recover);
     }
+
 
 
 }

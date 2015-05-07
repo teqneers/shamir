@@ -46,19 +46,19 @@ class Shamir implements Algorithm, RandomGeneratorAware
     /**
      * Prime number has to be greater than the maximum number of shares possible
      *
-     * @var int
+     * @var float
      */
     protected $prime = 257;
 
     /**
-     * Part size in bytes
+     * Chunk size in bytes
      *
      * The secret will be divided equally. This value defines the chunk size and
      * how many bytes will get encoded at once.
      *
      * @var int
      */
-    protected $partSize = 1;
+    protected $chunkSize = 1;
 
     /**
      * The random generator
@@ -103,42 +103,40 @@ class Shamir implements Algorithm, RandomGeneratorAware
      */
     protected function modulo($number)
     {
-        $modulo = $number % $this->prime;
+        $modulo = bcmod( $number, $this->prime);
 
-        return ($modulo < 0) ? $modulo + $this->prime : $modulo;
+        return ($modulo < 0) ? bcadd($modulo, $this->prime) : $modulo;
     }
 
     /**
-     * Calculates the a lookup table for reverse coefficients
+     * Calculate greatest common divisor (Euclid algorithm)
      *
-     * @return array
+     * @param int $n
+     * @param int $m
+     * @return int
      */
-    protected function invTab()
+    protected function gcd($n, $m)
     {
-        if (!isset($this->invTab)) {
-            $x = $y = 1;
-            $this->invTab = array(0 => 0);
-            for ($i = 0; $i < $this->prime; $i++) {
-                $this->invTab[$x] = $y;
-                $x = $this->modulo(3 * $x);
-                $y = $this->modulo(86 * $y);
-            }
+        if ($m > 0) {
+            return $this->gcd($m, bcmod($n, $m));
+        } else {
+            return abs($n);
         }
-
-        return $this->invTab;
     }
+
 
     /**
      * Calculates the inverse modulo
      *
-     * @param int $i
+     * @param int $number
      * @return int
      */
-    protected function inv($i)
+    protected function inverseModulo($number)
     {
-        $invTab = $this->invTab();
+        $number = bcmod($number, $this->prime);
+        $r = ($number < 0) ? -$this->gcd($this->prime, -$number) : $this->gcd($this->prime, $number);
 
-        return ($i < 0) ? $this->modulo(-$invTab[-$i]) : $invTab[$i];
+        return bcmod(bcadd($this->prime, $r), $this->prime);
     }
 
     /**
@@ -158,7 +156,7 @@ class Shamir implements Algorithm, RandomGeneratorAware
             for ($j = 0; $j < $threshold; $j++) {
                 if ($i != $j) {
                     $temp = $this->modulo(
-                        -$temp * $keyX[$j] * $this->inv($keyX[$i] - $keyX[$j])
+                        bcmul(bcmul(-$temp, $keyX[$j]), $this->inverseModulo($keyX[$i] - $keyX[$j]))
                     );
                 }
             }
@@ -178,7 +176,7 @@ class Shamir implements Algorithm, RandomGeneratorAware
      * Generate random coefficient
      *
      * @param   integer $threshold Number of coefficients needed
-     * @return  array                   Random coefficients
+     * @return  array
      */
     protected function generateCoefficients($threshold)
     {
@@ -332,8 +330,13 @@ class Shamir implements Algorithm, RandomGeneratorAware
                 throw new \OutOfRangeException('Prime with that many bytes are not implemented yet.');
         }
 
-        $this->partSize = $bytes;
+        $this->chunkSize = $bytes;
+//$this->chunkSize = 3;
+//$this->chunkSize = 4;
+
         $this->prime = $prime;
+//$this->prime = 1677727;
+//$this->prime = 4294967311;
     }
 
 
@@ -347,18 +350,18 @@ class Shamir implements Algorithm, RandomGeneratorAware
      */
     protected function unpack($string)
     {
-        $part = 0;
+        $chunk = 0;
         $int = null;
         $return = array();
         foreach (unpack('C*', $string) as $byte) {
-            $int += $byte * pow(2, $part * 8);
-            if (++$part == $this->partSize) {
+            $int = bcadd($int, bcmul($byte, bcpow(2, $chunk * 8)));
+            if (++$chunk == $this->chunkSize) {
                 $return[] = $int;
-                $part = 0;
+                $chunk = 0;
                 $int = null;
             }
         }
-        if ($part != 0) {
+        if ($chunk > 0) {
             $return[] = $int;
         }
 
@@ -378,7 +381,7 @@ class Shamir implements Algorithm, RandomGeneratorAware
      */
     protected function maxKeyLength($bytes)
     {
-        $maxInt = pow(2, $bytes * 8);
+        $maxInt = bcpow(2, $bytes * 8);
         $converted = self::convBase($maxInt, self::DECIMAL, self::CHARS);
         return strlen($converted);
     }
@@ -404,8 +407,9 @@ class Shamir implements Algorithm, RandomGeneratorAware
             throw new \OutOfRangeException('Padding character must not be part of possible encryption chars.');
         }
 
-        // divide secret into single bytes, which we encrypt one by one
+        // divide secret into chunks, which we encrypt one by one
         $result = array();
+
         foreach ($this->unpack($secret) as $bytes) {
             $coeffs = $this->generateCoefficients($threshold);
             $coeffs[] = $bytes;
@@ -422,26 +426,26 @@ class Shamir implements Algorithm, RandomGeneratorAware
         // encode number of bytes and threshold
 
         // calculate the maximum length of key sequence number and threshold
-        $maxBaseLength = $this->maxKeyLength($this->partSize);
+        $maxBaseLength = $this->maxKeyLength($this->chunkSize);
         // in order to do a correct padding to the converted base, we need to use the first char of the base
         $paddingChar = substr(self::CHARS, 0, 1);
         // define prefix number using the number of bytes (hex), and a left padded string used for threshold (base converted)
         $fixPrefixFormat = '%x%' . $paddingChar . $maxBaseLength . 's';
         // prefix is going to be the same for all keys
-        $prefix = sprintf($fixPrefixFormat, $this->partSize, self::convBase($threshold, self::DECIMAL, self::CHARS));
+        $prefix = sprintf($fixPrefixFormat, $this->chunkSize, self::convBase($threshold, self::DECIMAL, self::CHARS));
 
         // convert y coordinates into hexadecimals shares
         $passwords = array();
         $secretLen = strlen($secret);
         // calculate how many bytes, we need to cut off during recovery
-        $tail = str_repeat(self::PAD_CHAR, $secretLen % $this->partSize);
+        $tail = str_repeat(self::PAD_CHAR, $secretLen % $this->chunkSize);
 
         for ($i = 0; $i < $shares; ++$i) {
             $sequence = self::convBase(($i + 1), self::DECIMAL, self::CHARS);
             $key = sprintf($prefix . '%' . $paddingChar . $maxBaseLength . 's', $sequence);
 
-            for ($j = 0; $j < $secretLen; $j += $this->partSize) {
-                $x = ceil($j / $this->partSize);
+            for ($j = 0; $j < $secretLen; $j += $this->chunkSize) {
+                $x = ceil($j / $this->chunkSize);
 
                 $key .= str_pad(
                     self::convBase($result[$x * $shares + $i], self::DECIMAL, self::CHARS),
@@ -451,7 +455,7 @@ class Shamir implements Algorithm, RandomGeneratorAware
                 );
             }
 
-            $passwords[] = $key.$tail;
+            $passwords[] = $key . $tail;
         }
 
         return $passwords;
@@ -481,6 +485,9 @@ class Shamir implements Algorithm, RandomGeneratorAware
         $keyFormat = '%1x%' . $maxBaseLength . 's%' . $maxBaseLength . 's%s';
 
         foreach ($keys as $key) {
+            // remove trailing padding characters
+            $key = str_replace(self::PAD_CHAR, '', $key);
+
             // extract "public" information of key: bytes, threshold, sequence
 
             list($keyBytes, $keyThreshold, $keySequence, $key) = sscanf($key, $keyFormat);
@@ -503,8 +510,6 @@ class Shamir implements Algorithm, RandomGeneratorAware
             } elseif ($keyLen != strlen($key)) {
                 throw new \RuntimeException('Given keys vary in key length.');
             }
-            // remove trailing padding characters
-            $key = str_replace(self::PAD_CHAR, '', $key);
             for ($i = 0; $i < strlen($key); $i += $maxBaseLength) {
                 $keyY[] = self::convBase(substr($key, $i, $maxBaseLength), self::CHARS, self::DECIMAL);
             }
@@ -533,7 +538,7 @@ class Shamir implements Algorithm, RandomGeneratorAware
 
         // remove padding from secret (NULL bytes);
         $padCount = substr_count(reset($keys), '=');
-        if( $padCount ) {
+        if ($padCount) {
             $secret = substr($secret, 0, -1 * $padCount);
         }
 
