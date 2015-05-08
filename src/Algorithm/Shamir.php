@@ -585,6 +585,7 @@ class Shamir implements Algorithm, RandomGeneratorAware
         $key = reset($keys);
         // first we need to find out the bytes to predict threshold and sequence length
         $bytes = hexdec(substr($key, 0, 1));
+		$this->setChunkSize($bytes);
         // calculate the maximum length of key sequence number and threshold
         $maxBaseLength = $this->maxKeyLength($bytes);
         // define key format: bytes (hex), threshold, sequence, and key (except of bytes, all is base converted)

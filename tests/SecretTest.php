@@ -7,7 +7,6 @@ use TQ\Shamir\Algorithm\Algorithm;
 use TQ\Shamir\Algorithm\RandomGeneratorAware;
 use TQ\Shamir\Algorithm\Shamir;
 use TQ\Shamir\Random\Generator;
-use TQ\Shamir\Random\PhpGenerator;
 use TQ\Shamir\Secret;
 
 class SecretTest extends \PHPUnit_Framework_TestCase
@@ -81,9 +80,11 @@ class SecretTest extends \PHPUnit_Framework_TestCase
         }
 
         $return = array();
+		// add full ASCII charset
         for ($bytes = 1; $bytes < 8; ++$bytes) {
             $return[] = array($this->secretAscii, $bytes);
         }
+		// add some unicode chars
         for ($bytes = 1; $bytes < 8; ++$bytes) {
             $return[] = array($this->secretUtf8, $bytes);
         }
@@ -92,17 +93,18 @@ class SecretTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider provideShareAndRecoverMultipleBytes
-     * @todo: needs to be fixed
      */
-    public function _testShareAndRecoverMultipleBytes($secret, $bytes)
+    public function testShareAndRecoverMultipleBytes($secret, $bytes)
     {
         $shamir = new Shamir();
-        $shamir->setRandomGenerator(new PhpGenerator());
         $shamir->setChunkSize($bytes);
 
         $shares = $shamir->share($secret, 2, 2);
 
-        $recover = Secret::recover(array_slice($shares, 0, 2));
+		// create new instance to check if all necessary values
+		// are set with the keys
+        $shamir = new Shamir();
+        $recover = $shamir->recover(array_slice($shares, 0, 2));
         $this->assertSame($secret, $recover);
     }
 
