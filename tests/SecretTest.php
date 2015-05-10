@@ -108,6 +108,20 @@ class SecretTest extends \PHPUnit_Framework_TestCase
         $this->assertSame($secret, $recover);
     }
 
+    public function testShareAndRecoverShuffleKeys()
+    {
+        $secret = 'abc ABC 123 !@# ,./ \'"\\ <>?';
+
+        $shares = Secret::share($secret, 50, 2);
+
+		for ($i = 0; $i < count($shares); ++$i) {
+			for ($j = $i+1; $j < count($shares); ++$j) {
+	        	$recover = Secret::recover(array($shares[$i], $shares[$j]));
+	        	$this->assertSame($secret, $recover);
+			}
+		}
+    }
+
     public function testShareAndRecoverOneByte()
     {
         $secret = 'abc ABC 123 !@# ,./ \'"\\ <>?';
