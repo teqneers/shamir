@@ -246,10 +246,10 @@ class Shamir implements Algorithm, RandomGeneratorAware {
 		if( $b == 0 ) {
 			return array( $a, 1, 0 );
 		} else {
-			$n = floor( bcdiv( $a, $b ) );
-			$c = bcmod( $a, $b );
-			$r = $this->gcdD( $b, $c );
-			return array( $r[0], $r[2], $r[1] - $r[2] * $n );
+			$div = floor( bcdiv( $a, $b ) );
+			$mod = bcmod( $a, $b );
+			$decomp = $this->gcdD( $b, $mod );
+			return array( $decomp[0], $decomp[2], $decomp[1] - $decomp[2] * $div );
 		}
 	}
 
