@@ -629,7 +629,7 @@ class Shamir implements Algorithm, RandomGeneratorAware {
 		$secret = $this->joinSecret( $keyX, $keyY, $bytes, $keyLen, $threshold );
 
 		// remove padding from secret (NULL bytes);
-		$padCount = substr_count( reset( $keys ), '=' );
+		$padCount = substr_count( reset( $keys ), self::PAD_CHAR );
 		if( $padCount ) {
 			$secret = substr( $secret, 0, -1 * $padCount );
 		}
