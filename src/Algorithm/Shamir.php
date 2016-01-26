@@ -334,18 +334,18 @@ class Shamir implements Algorithm, RandomGeneratorAware {
 	 * 11 + x * ( 7 + x * ( -5 + x * ( -4 + x * 2 ) ) )
 	 *
 	 * @see     http://en.wikipedia.org/wiki/Horner%27s_method
-	 * @param   integer $x            X coordinate
+	 * @param   integer $xCoordinate            X coordinate
 	 * @param   array   $coefficients Polynomial coefficients
 	 * @return  integer                     Y coordinate
 	 */
-	protected function hornerMethod( $x, array $coefficients ) {
+	protected function hornerMethod( $xCoordinate, array $coefficients ) {
 
-		$y = 0;
-		foreach( $coefficients as $c ) {
-			$y = $this->modulo( $x * $y + $c );
+		$yCoordinate = 0;
+		foreach( $coefficients as $coefficient ) {
+			$yCoordinate = $this->modulo( $xCoordinate * $yCoordinate + $coefficient );
 		}
 
-		return $y;
+		return $yCoordinate;
 	}
 
 
