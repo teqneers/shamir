@@ -117,4 +117,4 @@ PHP 5.5.0 or above
 License
 =======
 
-Composer is licensed under the MIT License - see the [LICENSE](LICENSE) file for details
+Shamir's Secret Sharing in PHP is licensed under the MIT License - see the [LICENSE](LICENSE) file for details
