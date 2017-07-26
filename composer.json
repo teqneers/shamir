@@ -19,6 +19,11 @@
         "php": ">=5.5.9",
         "symfony/console": "3.*"
     },
+     "config":           {
+     	"platform":           {
+    	    "php": "5.5.9"
+		}
+    },
     "require-dev":       {
         "phpunit/phpunit": "4.*"
     },
