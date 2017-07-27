@@ -14,7 +14,7 @@ tools:
     config:
       standard: psr1
   sensiolabs_security_checker: true
-  php_code_coverage: true
+  #php_code_coverage: true
   php_pdepend: true
   php_loc:
     enabled: true
