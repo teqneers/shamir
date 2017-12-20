@@ -7,3 +7,10 @@ exclude_paths:
   - tests/*
   - vendor/*
   - example/*
+checks:
+  argument-count:
+    config:
+      threshold: 5
+  method-lines:
+    config:
+      threshold: 35

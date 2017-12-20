@@ -16,6 +16,13 @@ class CliTest extends \PHPUnit_Framework_TestCase
     protected $descriptorSpec;
     protected $cmd;
 
+    function __construct($name = null, array $data = array(), $dataName = '')
+    {
+        parent::__construct($name, $data, $dataName);
+        $this->cmd = __DIR__ . '/../bin/shamir.php';
+
+    }
+
     /**
      * Call protected/private method of a class.
      *
@@ -54,7 +61,6 @@ class CliTest extends \PHPUnit_Framework_TestCase
 
     protected function setUp()
     {
-        $this->cmd = __DIR__ . '/../bin/shamir.php';
         $this->descriptorSpec = array(
             1 => array("pipe", "w"), // stdout is a pipe that the child will write to
             2 => array("pipe", "w") // stderr is a pipe that the child will write to
@@ -65,6 +71,7 @@ class CliTest extends \PHPUnit_Framework_TestCase
     protected function execute($cmd)
     {
         $ret = array();
+
         $process = proc_open($cmd, $this->descriptorSpec, $pipes);
         if (is_resource($process)) {
             $ret['std'] = stream_get_contents($pipes[1]);
