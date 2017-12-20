@@ -18,7 +18,7 @@ use TQ\Shamir\Random\PhpGenerator;
 class Shamir implements Algorithm, RandomGeneratorAware {
 
 	/**
-	 * Calculation base (decimal)
+     * Calculation base (decimal)
 	 *
 	 * Changing this will invalid all previously created keys.
 	 *

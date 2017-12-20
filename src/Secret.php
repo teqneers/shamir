@@ -35,7 +35,7 @@ class Secret
      * Overrides the random generator to use
      *
      * @param   Generator|null $randomGenerator The random generator
-     * @param   boolean        $returnOld       True to return the old random generator
+     * @param   boolean $returnOld True to return the old random generator
      * @return  Generator|null The old random generator if $returnOld is true
      */
     public static function setRandomGenerator(Generator $randomGenerator = null, $returnOld = true)
@@ -87,7 +87,7 @@ class Secret
      * Overrides the algorithm to use
      *
      * @param   Algorithm $algorithm
-     * @param   boolean   $returnOld True to return the old algorithm
+     * @param   boolean $returnOld True to return the old algorithm
      * @return  Algorithm|null The old algorithm if $returnOld is true
      */
     public static function setAlgorithm(Algorithm $algorithm = null, $returnOld = true)
