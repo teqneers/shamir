@@ -14,7 +14,7 @@ class CliTest extends \PHPUnit_Framework_TestCase
     protected $secretUtf8 = 'Lorem ipsum dolor sit असरकारक संस्थान δισεντιας قبضتهم нолюёжжэ 問ナマ業71職げら覧品モス変害';
     protected $secretAscii;
     protected $descriptorSpec;
-    protected $cmd = __DIR__ . '/../bin/shamir.php';
+    protected $cmd;
 
     /**
      * Call protected/private method of a class.
@@ -54,6 +54,7 @@ class CliTest extends \PHPUnit_Framework_TestCase
 
     protected function setUp()
     {
+        $this->cmd = __DIR__ . '/../bin/shamir.php';
         $this->descriptorSpec = array(
             1 => array("pipe", "w"), // stdout is a pipe that the child will write to
             2 => array("pipe", "w") // stderr is a pipe that the child will write to
