@@ -8,7 +8,6 @@ Quality](https://scrutinizer-ci.com/g/teqneers/shamir/badges/quality-score.png?b
 Coverage](https://scrutinizer-ci.com/g/teqneers/shamir/badges/coverage.png?b=master)](https://scrutinizer-ci.com/g/teqneers/shamir/?branch=master)
 [![Code
 Climate](https://codeclimate.com/github/teqneers/shamir/badges/gpa.svg)](https://codeclimate.com/github/teqneers/shamir)
-[![Dependency Status](https://www.versioneye.com/user/projects/55586267b2ff6d2ecc0002db/badge.svg?style=flat)](https://www.versioneye.com/user/projects/59b68d4a6725bd004960a362)
 
 This is Shamir's Shared Secret implementation in PHP. It allows you to create shared secrets using the PHP classes or the CLI interface.
 
