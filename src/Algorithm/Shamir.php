@@ -126,43 +126,15 @@ class Shamir implements Algorithm, RandomGeneratorAware {
 	public function setChunkSize( $chunkSize ) {
 
 		$chunkSize = (int)$chunkSize;
+		$primeNumber = array( 1 => 257, 65537, 16777259, 4294967311, 1099511627791, 281474976710677, 72057594037928017 );
 
-		// if chunk size has been set already, we will only increase it, if necessary
-		switch( $chunkSize ) {
-			case 1:
-				// 1 byte needed: 256
-				$prime = 257;
-				break;
-			case 2:
-				// 2 bytes needed: 65536
-				$prime = 65537;
-				break;
-			case 3:
-				// 3 bytes needed: 16777216
-				$prime = 16777259;
-				break;
-			case 4:
-				// 4 bytes needed: 4294967296
-				$prime = 4294967311;
-				break;
-			case 5:
-				// 5 bytes needed: 1099511627776
-				$prime = 1099511627791;
-				break;
-			case 6:
-				// 6 bytes needed: 281474976710656
-				$prime = 281474976710677;
-				break;
-			case 7:
-				// 7 bytes needed: 72057594037927936
-				$prime = 72057594037928017;
-				break;
-			default:
-				throw new \OutOfRangeException( 'Chunk sizes with that many bytes are not implemented yet.' );
+		if( $chunkSize > 7 ) {
+			throw new \OutOfRangeException( 'Chunk sizes with that many bytes are not implemented yet.' );
 		}
 
 		$this->chunkSize = $chunkSize;
-		$this->prime = $prime;
+		// if chunk size has been set already, we will only increase it, if necessary
+		$this->prime = $primeNumber[$chunkSize];
 
 		return $this;
 	}
