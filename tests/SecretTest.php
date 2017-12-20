@@ -14,6 +14,42 @@ class SecretTest extends \PHPUnit_Framework_TestCase
     protected $secretUtf8 = 'Lorem ipsum dolor sit असरकारक संस्थान δισεντιας قبضتهم нолюёжжэ 問ナマ業71職げら覧品モス変害';
     protected $secretAscii;
 
+    /**
+     * Call protected/private method of a class.
+     *
+     * @param object &$object Instantiated object that we will run method on.
+     * @param string $methodName Method name to call
+     * @param array $parameters Array of parameters to pass into method.
+     *
+     * @return mixed Method return.
+     */
+    public function invokeMethod(&$object, $methodName, array $parameters = array())
+    {
+        $reflection = new \ReflectionClass(get_class($object));
+        $method = $reflection->getMethod($methodName);
+        $method->setAccessible(true);
+
+        return $method->invokeArgs($object, $parameters);
+    }
+
+    /**
+     * Call protected/private static method of a class.
+     *
+     * @param string $class Name of the class
+     * @param string $methodName Static method name to call
+     * @param array $parameters Array of parameters to pass into method.
+     *
+     * @return mixed Method return.
+     */
+    public function invokeStaticMethod($class, $methodName, array $parameters = array())
+    {
+        $reflection = new \ReflectionClass($class);
+        $method = $reflection->getMethod($methodName);
+        $method->setAccessible(true);
+
+        return $method->invokeArgs(null, $parameters);
+    }
+
     protected function setUp()
     {
         Secret::setRandomGenerator(null);
@@ -24,6 +60,57 @@ class SecretTest extends \PHPUnit_Framework_TestCase
     {
         Secret::setRandomGenerator(null);
         Secret::setAlgorithm(null);
+    }
+
+
+    public function convertBaseProvider()
+    {
+        return [
+            # dec -> dec
+            [0, '0123456789', '0123456789', 0],
+            [100, '0123456789', '0123456789', 100],
+            [999, '0123456789', '0123456789', 999],
+
+            # dec -> bin
+            [0, '0123456789', '01', 0],
+            [100, '0123456789', '01', "1100100"],
+            [999, '0123456789', '01', "1111100111"],
+            # dec -> oct
+            [0, '0123456789', '01234567', 0],
+            [100, '0123456789', '01234567', "144"],
+            [999, '0123456789', '01234567', "1747"],
+            # dec -> hex
+            [0, '0123456789', '0123456789abcdef', 0],
+            [100, '0123456789', '0123456789abcdef', "64"],
+            [999, '0123456789', '0123456789abcdef', "3e7"],
+
+            # bin -> dec
+            [0, '01', '0123456789', 0],
+            ["11111", '01', '0123456789', 31],
+            ["101010101010", '01', '0123456789', 2730],
+            # oct -> dec
+            [0, '01234567', '0123456789', 0],
+            ["100", '01234567', '0123456789', 64],
+            ["77777", '01234567', '0123456789', 32767],
+            # dec -> hex
+            [0, '0123456789abcdef', '0123456789', 0],
+            ['ffff', '0123456789abcdef', '0123456789', 65535],
+            ['abcdef0123', '0123456789abcdef', '0123456789', 737894400291],
+        ];
+    }
+
+    /**
+     * @dataProvider convertBaseProvider
+     */
+    public function testConvBase($numberInput, $fromBaseInput, $toBaseInput, $expected)
+    {
+        $returnVal = $this->invokeStaticMethod(
+            'TQ\Shamir\Algorithm\Shamir',
+            'convBase',
+            array($numberInput, $fromBaseInput, $toBaseInput)
+        );
+        var_dump($returnVal);
+        $this->assertEquals($expected, $returnVal);
     }
 
     public function testReturnsDefaultAlgorithm()
@@ -44,6 +131,9 @@ class SecretTest extends \PHPUnit_Framework_TestCase
 
         $this->assertSame($current, Secret::setAlgorithm($new));
         $this->assertSame($new, Secret::getAlgorithm());
+
+        // don't return old one with returnOld = false
+        $this->assertSame(null, Secret::setAlgorithm($new, false));
     }
 
     public function testSetNewRandomGeneratorReturnsOld()
@@ -80,11 +170,11 @@ class SecretTest extends \PHPUnit_Framework_TestCase
         }
 
         $return = array();
-		// add full ASCII charset
+        // add full ASCII charset
         for ($bytes = 1; $bytes < 8; ++$bytes) {
             $return[] = array($this->secretAscii, $bytes);
         }
-		// add some unicode chars
+        // add some unicode chars
         for ($bytes = 1; $bytes < 8; ++$bytes) {
             $return[] = array($this->secretUtf8, $bytes);
         }
@@ -101,8 +191,8 @@ class SecretTest extends \PHPUnit_Framework_TestCase
 
         $shares = $shamir->share($secret, 2, 2);
 
-		// create new instance to check if all necessary values
-		// are set with the keys
+        // create new instance to check if all necessary values
+        // are set with the keys
         $shamir = new Shamir();
         $recover = $shamir->recover(array_slice($shares, 0, 2));
         $this->assertSame($secret, $recover);
@@ -114,12 +204,12 @@ class SecretTest extends \PHPUnit_Framework_TestCase
 
         $shares = Secret::share($secret, 50, 2);
 
-		for ($i = 0; $i < count($shares); ++$i) {
-			for ($j = $i+1; $j < count($shares); ++$j) {
-	        	$recover = Secret::recover(array($shares[$i], $shares[$j]));
-	        	$this->assertSame($secret, $recover);
-			}
-		}
+        for ($i = 0; $i < count($shares); ++$i) {
+            for ($j = $i + 1; $j < count($shares); ++$j) {
+                $recover = Secret::recover(array($shares[$i], $shares[$j]));
+                $this->assertSame($secret, $recover);
+            }
+        }
     }
 
     public function testShareAndRecoverOneByte()
@@ -189,6 +279,37 @@ class SecretTest extends \PHPUnit_Framework_TestCase
 
         $recover = Secret::recover(array_slice($shares, 0, 2));
         $this->assertSame($secret, $recover);
+    }
+
+    /**
+     * @dataProvider provideShareAndRecoverMultipleBytes
+     */
+    public function testChunkSizeGetter($secret, $bytes)
+    {
+        $shamir = new Shamir();
+        $shamir->setChunkSize($bytes);
+
+        $this->assertSame($shamir->getChunkSize(), $bytes);
+    }
+
+    /**
+     * @expectedException OutOfRangeException
+     */
+    public function testSetChunkSizeException()
+    {
+        $shamir = new Shamir();
+        $shamir->setChunkSize(99);
+
+    }
+
+    /**
+     * @expectedException OutOfRangeException
+     */
+    public function testShareAndShareSmallerThreshold()
+    {
+        $secret = 'abc ABC 123 !@# ,./ \'"\\ <>?';
+
+        $shares = Secret::share($secret, 1, 2);
     }
 
 
