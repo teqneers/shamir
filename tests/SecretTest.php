@@ -109,7 +109,6 @@ class SecretTest extends \PHPUnit_Framework_TestCase
             'convBase',
             array($numberInput, $fromBaseInput, $toBaseInput)
         );
-        var_dump($returnVal);
         $this->assertEquals($expected, $returnVal);
     }
 
