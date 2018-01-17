@@ -1,5 +1,6 @@
 {
     "name":              "tq/shamir",
+    "description":       "This is Shamir's Shared Secret implementation in PHP. It allows you to create shared secrets using the PHP classes or the CLI interface.",
     "minimum-stability": "stable",
     "type":              "library",
     "license":           "MIT",
