@@ -2,12 +2,13 @@ Shamir's Secret Sharing in PHP
 ==============================
 
 Build status: [![Build Status](https://travis-ci.org/teqneers/shamir.svg)](https://travis-ci.org/teqneers/shamir)
-[![Scrutinizer Code
-Quality](https://scrutinizer-ci.com/g/teqneers/shamir/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/teqneers/shamir/?branch=master)
-[![Code
-Coverage](https://scrutinizer-ci.com/g/teqneers/shamir/badges/coverage.png?b=master)](https://scrutinizer-ci.com/g/teqneers/shamir/?branch=master)
-[![Code
-Climate](https://codeclimate.com/github/teqneers/shamir/badges/gpa.svg)](https://codeclimate.com/github/teqneers/shamir)
+[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/teqneers/shamir/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/teqneers/shamir/?branch=master)
+[![Code Coverage](https://scrutinizer-ci.com/g/teqneers/shamir/badges/coverage.png?b=master)](https://scrutinizer-ci.com/g/teqneers/shamir/?branch=master)
+[![Code Climate](https://codeclimate.com/github/teqneers/shamir/badges/gpa.svg)](https://codeclimate.com/github/teqneers/shamir)
+
+[![License](https://img.shields.io/github/license/teqneers/shamir.svg?style=flat)](https://img.shields.io/github/license/teqneers/shamir.svg?style=flat)
+[![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/teqneers/shamir.svg?style=flat)]((https://img.shields.io/github/languages/code-size/teqneers/shamir.svg?style=flat))
+[![PHP Versions tested on Travis](https://img.shields.io/travis/php-v/teqneers/shamir.svg?style=flat)](https://img.shields.io/travis/php-v/teqneers/shamir.svg?style=flat)
 
 This is Shamir's Shared Secret implementation in PHP. It allows you to create shared secrets using the PHP classes or the CLI interface.
 

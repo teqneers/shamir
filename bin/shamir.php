@@ -7,7 +7,7 @@ use TQ\Shamir\Console\RecoverCommand;
 use TQ\Shamir\Console\ShareCommand;
 
 $command = new ShareCommand();
-$application = new Application('Shamir\'s Shared Secret CLI', '0.1.0');
+$application = new Application('Shamir\'s Shared Secret CLI', '1.0.0');
 $application->add(new RecoverCommand());
 $application->add(new ShareCommand());
 $application->run();

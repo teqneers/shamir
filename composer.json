@@ -8,12 +8,12 @@
         {
             "name":     "Stefan Gehrig",
             "email":    "gehrig@teqneers.de",
-            "homepage": "http://opensource.teqneers.de/"
+            "homepage": "https://teqneers.de/"
         },
         {
             "name":     "Oliver Müller",
             "email":    "mueller@teqneers.de",
-            "homepage": "http://opensource.teqneers.de/"
+            "homepage": "https://teqneers.de/"
         }
     ],
     "require":           {
