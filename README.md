@@ -6,7 +6,7 @@ Build status: [![Build Status](https://travis-ci.org/teqneers/shamir.svg)](https
 [![Code Coverage](https://scrutinizer-ci.com/g/teqneers/shamir/badges/coverage.png?b=master)](https://scrutinizer-ci.com/g/teqneers/shamir/?branch=master)
 [![Code Climate](https://codeclimate.com/github/teqneers/shamir/badges/gpa.svg)](https://codeclimate.com/github/teqneers/shamir)
 
-[![License](https://img.shields.io/github/license/teqneers/shamir.svg?style=flat)](https://img.shields.io/github/license/teqneers/shamir.svg?style=flat)
+Project information: [![License](https://img.shields.io/github/license/teqneers/shamir.svg?style=flat)](https://img.shields.io/github/license/teqneers/shamir.svg?style=flat)
 [![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/teqneers/shamir.svg?style=flat)]((https://img.shields.io/github/languages/code-size/teqneers/shamir.svg?style=flat))
 [![PHP Versions tested on Travis](https://img.shields.io/travis/php-v/teqneers/shamir.svg?style=flat)](https://img.shields.io/travis/php-v/teqneers/shamir.svg?style=flat)
 
