@@ -3,13 +3,14 @@
 namespace TQ\Shamir\Tests;
 
 
+use PHPUnit\Framework\TestCase;
 use TQ\Shamir\Algorithm\Algorithm;
 use TQ\Shamir\Algorithm\RandomGeneratorAware;
 use TQ\Shamir\Algorithm\Shamir;
 use TQ\Shamir\Random\Generator;
 use TQ\Shamir\Secret;
 
-class SecretTest extends \PHPUnit_Framework_TestCase
+class SecretTest extends TestCase
 {
     protected $secretUtf8 = 'Lorem ipsum dolor sit असरकारक संस्थान δισεντιας قبضتهم нолюёжжэ 問ナマ業71職げら覧品モス変害';
     protected $secretAscii;
