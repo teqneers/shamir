@@ -21,6 +21,9 @@
     "symfony/console": "^3.4",
     "ext-bcmath": "*"
   },
+  "suggest": {
+      "ext-openssl": "For using its random generator instead of PHP one"
+},
   "config": {
     "sort-packages": true
   },

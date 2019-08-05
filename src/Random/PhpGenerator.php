@@ -28,8 +28,8 @@ class PhpGenerator implements Generator
     /**
      * Constructor
      *
-     * @param  int  $max  The maximum random number
-     * @param  int  $min  The minimum random number
+     * @param  integer  $max  The maximum random number
+     * @param  integer  $min  The minimum random number
      */
     public function __construct($max = PHP_INT_MAX, $min = 1)
     {

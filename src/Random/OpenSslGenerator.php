@@ -16,7 +16,7 @@ class OpenSslGenerator implements Generator
     /**
      * Length of the desired string of bytes
      *
-     * @var int
+     * @var integer
      */
     protected $bytes = PHP_INT_SIZE;
 
@@ -30,8 +30,8 @@ class OpenSslGenerator implements Generator
     /**
      * Constructor
      *
-     * @param  int   $bytes        Bytes to use in result
-     * @param  bool  $forceStrong  Force strong random number generation
+     * @param  integer  $bytes        Bytes to use in result
+     * @param  bool     $forceStrong  Force strong random number generation
      */
     public function __construct($bytes = PHP_INT_SIZE, $forceStrong = true)
     {
@@ -47,7 +47,7 @@ class OpenSslGenerator implements Generator
     public function getRandomInt()
     {
         $random = openssl_random_pseudo_bytes($this->bytes, $strong);
-        if ($random === null || ($this->forceStrong && $strong !== true)) {
+        if ($random === false || ($this->forceStrong && $strong !== true)) {
             throw new RuntimeException(
                 'Random number generator algorithm didn\'t used "cryptographically strong" method.'
             );

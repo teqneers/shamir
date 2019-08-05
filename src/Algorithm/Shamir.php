@@ -116,7 +116,7 @@ class Shamir implements Algorithm, RandomGeneratorAware
      * to set a smaller size than required by shares.
      *
      * @see
-     * @param  int  $chunkSize  Size in number of bytes
+     * @param  integer  $chunkSize  Size in number of bytes
      * @return Shamir
      * @throws OutOfRangeException
      */
@@ -146,7 +146,7 @@ class Shamir implements Algorithm, RandomGeneratorAware
      * it is smaller than the necessary size.
      *
      * @see    setChunkSize()
-     * @param  int  $max  Maximum number of keys needed
+     * @param  integer  $max  Maximum number of keys needed
      * @return Shamir
      * @throws OutOfRangeException
      */
@@ -166,7 +166,7 @@ class Shamir implements Algorithm, RandomGeneratorAware
         if ($max > $maxPossible) {
             // we are unable to provide more bytes-1 as supported by OS
             // because the prime number need to be higher than that, but
-            // this would exceed OS int range.
+            // this would exceed OS integer range.
             throw new OutOfRangeException(
                 'Number of required keys has to be below '.number_format($maxPossible).'.'
             );
@@ -190,8 +190,8 @@ class Shamir implements Algorithm, RandomGeneratorAware
     /**
      * Calculate modulo of any given number using prime
      *
-     * @param  integer     Number
-     * @return integer     Module of number
+     * @param  integer  $number
+     * @return string  Module of number
      */
     protected function modulo($number)
     {
@@ -204,7 +204,7 @@ class Shamir implements Algorithm, RandomGeneratorAware
      * Returns decomposition of the greatest common divisor of a and b
      *
      * @param  integer  $a
-     * @param  int      $b
+     * @param  integer  $b
      * @return array
      */
     protected function gcdD($a, $b)
@@ -223,7 +223,7 @@ class Shamir implements Algorithm, RandomGeneratorAware
     /**
      * Calculates the inverse modulo
      *
-     * @param  int  $number
+     * @param  integer  $number
      * @return string
      */
     protected function inverseModulo($number)
@@ -238,8 +238,8 @@ class Shamir implements Algorithm, RandomGeneratorAware
     /**
      * Calculates the reverse coefficients
      *
-     * @param  array  $keyX
-     * @param  int    $threshold
+     * @param  array    $keyX
+     * @param  integer  $threshold
      * @return array
      * @throws RuntimeException
      */
