@@ -21,7 +21,6 @@ class CliTest extends TestCase
     {
         parent::__construct($name, $data, $dataName);
         $this->cmd = __DIR__ . '/../bin/shamir.php';
-
     }
 
     /**

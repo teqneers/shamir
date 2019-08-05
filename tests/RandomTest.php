@@ -7,7 +7,7 @@ use PHPUnit\Framework\TestCase;
 use TQ\Shamir\Random\OpenSslGenerator;
 use TQ\Shamir\Random\PhpGenerator;
 
-class GeneratorTest extends TestCase
+class RandomTest extends TestCase
 {
     protected $num = 100;
     protected $byte = 3;    // 3 bytes negative
@@ -16,6 +16,8 @@ class GeneratorTest extends TestCase
 
     public function __construct()
     {
+        parent::__construct();
+
         $this->min = -1 << ($this->byte * 8);
         $this->max = 1 << ($this->byte * 8);
     }
