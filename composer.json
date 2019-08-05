@@ -18,7 +18,7 @@
     ],
     "require":           {
         "php": ">=7.0.0",
-        "symfony/console": "*"
+        "symfony/console": "^3.4"
     },
      "config":           {
 		"sort-packages": true
