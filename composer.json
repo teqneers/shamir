@@ -22,13 +22,14 @@
     "ext-bcmath": "*"
   },
   "suggest": {
-      "ext-openssl": "For using its random generator instead of PHP one"
-},
+    "ext-openssl": "For using its random generator instead of PHP one"
+  },
   "config": {
     "sort-packages": true
   },
   "require-dev": {
-    "phpunit/phpunit": "^6.5 || ^7.5"
+    "phpunit/phpunit": "^6.5 || ^7.5",
+    "roave/security-advisories": "dev-master"
   },
   "autoload": {
     "psr-4": {
