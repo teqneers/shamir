@@ -2,6 +2,7 @@
 
 namespace TQ\Shamir;
 
+use OutOfBoundsException;
 use TQ\Shamir\Algorithm\Algorithm;
 use TQ\Shamir\Algorithm\RandomGeneratorAware;
 use TQ\Shamir\Algorithm\Shamir;
@@ -34,8 +35,8 @@ class Secret
     /**
      * Overrides the random generator to use
      *
-     * @param   Generator|null $randomGenerator The random generator
-     * @param   boolean $returnOld True to return the old random generator
+     * @param  Generator|null  $randomGenerator  The random generator
+     * @param  boolean         $returnOld        True to return the old random generator
      * @return  Generator|null The old random generator if $returnOld is true
      */
     public static function setRandomGenerator(Generator $randomGenerator = null, $returnOld = true)
@@ -86,8 +87,8 @@ class Secret
     /**
      * Overrides the algorithm to use
      *
-     * @param   Algorithm $algorithm
-     * @param   boolean $returnOld True to return the old algorithm
+     * @param  Algorithm  $algorithm
+     * @param  boolean    $returnOld  True to return the old algorithm
      * @return  Algorithm|null The old algorithm if $returnOld is true
      */
     public static function setAlgorithm(Algorithm $algorithm = null, $returnOld = true)
@@ -102,17 +103,18 @@ class Secret
             $algorithm->setRandomGenerator(self::getRandomGenerator());
         }
         self::$algorithm = $algorithm;
+
         return $oldAlgorithm;
     }
 
     /**
      * Generate shared secrets
      *
-     * @param    string $secret Secret
-     * @param    integer $shares Number of parts to share
-     * @param    integer $threshold Minimum number of shares required for decryption
+     * @param  string   $secret     Secret
+     * @param  integer  $shares     Number of parts to share
+     * @param  integer  $threshold  Minimum number of shares required for decryption
      * @return  array               Secret shares
-     * @throws  \OutOfBoundsException
+     * @throws  OutOfBoundsException
      */
     public static function share($secret, $shares, $threshold = 2)
     {
@@ -122,7 +124,7 @@ class Secret
     /**
      * Recovers the secret from the given shared keys
      *
-     * @param   array $keys
+     * @param  array  $keys
      * @return  string
      */
     public static function recover(array $keys)

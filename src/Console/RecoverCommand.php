@@ -34,10 +34,10 @@ class RecoverCommand extends Command
         $shares = $input->getArgument('shares');
         if (empty($shares)) {
             /** @var QuestionHelper $dialog */
-            $helper = $this->getHelper('question');
+            $helper   = $this->getHelper('question');
             $question = new Question('<question>Shared secret</question> <comment>[empty to stop]</comment>: ');
-            $shares = [];
-            while (($share = trim($helper->ask($input, $output, $question))) != '') {
+            $shares   = [];
+            while (($share = trim($helper->ask($input, $output, $question))) !== '') {
                 $shares[] = $share;
             }
         }
@@ -46,9 +46,7 @@ class RecoverCommand extends Command
 
         /** @var FormatterHelper $formatter */
         $formatter = $this->getHelper('formatter');
-        $block = $formatter->formatBlock($shared, 'info', true);
+        $block     = $formatter->formatBlock($shared, 'info', true);
         $output->writeln($block);
-
     }
-
 }

@@ -2,6 +2,8 @@
 
 namespace TQ\Shamir\Random;
 
+use RuntimeException;
+
 /**
  * Class PhpGenerator
  *
@@ -9,7 +11,6 @@ namespace TQ\Shamir\Random;
  */
 class PhpGenerator implements Generator
 {
-
     /**
      * The maximum random number
      *
@@ -27,8 +28,8 @@ class PhpGenerator implements Generator
     /**
      * Constructor
      *
-     * @param int $max The maximum random number
-     * @param int $min The minimum random number
+     * @param  int  $max  The maximum random number
+     * @param  int  $min  The minimum random number
      */
     public function __construct($max = PHP_INT_MAX, $min = 1)
     {
@@ -48,12 +49,11 @@ class PhpGenerator implements Generator
         }
 
         if ($random === false) {
-            throw new \RuntimeException(
+            throw new RuntimeException(
                 'Random number generator algorithm failed.'
             );
-
         }
+
         return $random;
     }
-
 }
