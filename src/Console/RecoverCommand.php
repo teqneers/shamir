@@ -48,5 +48,6 @@ class RecoverCommand extends Command
         $formatter = $this->getHelper('formatter');
         $block     = $formatter->formatBlock($shared, 'info', true);
         $output->writeln($block);
+        return 0;
     }
 }

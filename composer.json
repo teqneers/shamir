@@ -14,11 +14,16 @@
       "name": "Oliver Müller",
       "email": "mueller@teqneers.de",
       "homepage": "https://teqneers.de/"
+    },
+    {
+      "name": "Peter Forret",
+      "email": "peter@churlie.com",
+      "homepage": "https://www.churlie.com/"
     }
   ],
   "require": {
-    "php": ">=7.0.0",
-    "symfony/console": "^3.4",
+    "php": ">=7.3.0",
+    "symfony/console": "*",
     "ext-bcmath": "*"
   },
   "suggest": {
