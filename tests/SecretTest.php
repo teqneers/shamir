@@ -17,13 +17,13 @@ class SecretTest extends \PHPUnit_Framework_TestCase
     /**
      * Call protected/private method of a class.
      *
-     * @param object &$object Instantiated object that we will run method on.
-     * @param string $methodName Method name to call
-     * @param array $parameters Array of parameters to pass into method.
+     * @param  object &$object      Instantiated object that we will run method on.
+     * @param  string  $methodName  Method name to call
+     * @param  array   $parameters  Array of parameters to pass into method.
      *
      * @return mixed Method return.
      */
-    public function invokeMethod(&$object, $methodName, array $parameters = array())
+    public function invokeMethod(&$object, $methodName, array $parameters = [])
     {
         $reflection = new \ReflectionClass(get_class($object));
         $method = $reflection->getMethod($methodName);
@@ -35,13 +35,13 @@ class SecretTest extends \PHPUnit_Framework_TestCase
     /**
      * Call protected/private static method of a class.
      *
-     * @param string $class Name of the class
-     * @param string $methodName Static method name to call
-     * @param array $parameters Array of parameters to pass into method.
+     * @param  string  $class       Name of the class
+     * @param  string  $methodName  Static method name to call
+     * @param  array   $parameters  Array of parameters to pass into method.
      *
      * @return mixed Method return.
      */
-    public function invokeStaticMethod($class, $methodName, array $parameters = array())
+    public function invokeStaticMethod($class, $methodName, array $parameters = [])
     {
         $reflection = new \ReflectionClass($class);
         $method = $reflection->getMethod($methodName);
@@ -65,38 +65,38 @@ class SecretTest extends \PHPUnit_Framework_TestCase
 
     public function convertBaseProvider()
     {
-        return array(
+        return [
             # dec -> dec
-            array(0, '0123456789', '0123456789', 0),
-            array(100, '0123456789', '0123456789', 100),
-            array(999, '0123456789', '0123456789', 999),
+            [0, '0123456789', '0123456789', 0],
+            [100, '0123456789', '0123456789', 100],
+            [999, '0123456789', '0123456789', 999],
 
             # dec -> bin
-            array(0, '0123456789', '01', 0),
-            array(100, '0123456789', '01', "1100100"),
-            array(999, '0123456789', '01', "1111100111"),
+            [0, '0123456789', '01', 0],
+            [100, '0123456789', '01', "1100100"],
+            [999, '0123456789', '01', "1111100111"],
             # dec -> oct
-            array(0, '0123456789', '01234567', 0),
-            array(100, '0123456789', '01234567', "144"),
-            array(999, '0123456789', '01234567', "1747"),
+            [0, '0123456789', '01234567', 0],
+            [100, '0123456789', '01234567', "144"],
+            [999, '0123456789', '01234567', "1747"],
             # dec -> hex
-            array(0, '0123456789', '0123456789abcdef', 0),
-            array(100, '0123456789', '0123456789abcdef', "64"),
-            array(999, '0123456789', '0123456789abcdef', "3e7"),
+            [0, '0123456789', '0123456789abcdef', 0],
+            [100, '0123456789', '0123456789abcdef', "64"],
+            [999, '0123456789', '0123456789abcdef', "3e7"],
 
             # bin -> dec
-            array(0, '01', '0123456789', 0),
-            array("11111", '01', '0123456789', 31),
-            array("101010101010", '01', '0123456789', 2730),
+            [0, '01', '0123456789', 0],
+            ["11111", '01', '0123456789', 31],
+            ["101010101010", '01', '0123456789', 2730],
             # oct -> dec
-            array(0, '01234567', '0123456789', 0),
-            array("100", '01234567', '0123456789', 64),
-            array("77777", '01234567', '0123456789', 32767),
+            [0, '01234567', '0123456789', 0],
+            ["100", '01234567', '0123456789', 64],
+            ["77777", '01234567', '0123456789', 32767],
             # dec -> hex
-            array(0, '0123456789abcdef', '0123456789', 0),
-            array('ffff', '0123456789abcdef', '0123456789', 65535),
-            array('abcdef0123', '0123456789abcdef', '0123456789', 737894400291),
-        );
+            [0, '0123456789abcdef', '0123456789', 0],
+            ['ffff', '0123456789abcdef', '0123456789', 65535],
+            ['abcdef0123', '0123456789abcdef', '0123456789', 737894400291],
+        ];
     }
 
     /**
@@ -107,7 +107,7 @@ class SecretTest extends \PHPUnit_Framework_TestCase
         $returnVal = $this->invokeStaticMethod(
             'TQ\Shamir\Algorithm\Shamir',
             'convBase',
-            array($numberInput, $fromBaseInput, $toBaseInput)
+            [$numberInput, $fromBaseInput, $toBaseInput]
         );
         $this->assertEquals($expected, $returnVal);
     }
@@ -168,14 +168,14 @@ class SecretTest extends \PHPUnit_Framework_TestCase
             }
         }
 
-        $return = array();
+        $return = [];
         // add full ASCII charset
         for ($bytes = 1; $bytes < 8; ++$bytes) {
-            $return[] = array($this->secretAscii, $bytes);
+            $return[] = [$this->secretAscii, $bytes];
         }
         // add some unicode chars
         for ($bytes = 1; $bytes < 8; ++$bytes) {
-            $return[] = array($this->secretUtf8, $bytes);
+            $return[] = [$this->secretUtf8, $bytes];
         }
         return $return;
     }
@@ -205,7 +205,7 @@ class SecretTest extends \PHPUnit_Framework_TestCase
 
         for ($i = 0; $i < count($shares); ++$i) {
             for ($j = $i + 1; $j < count($shares); ++$j) {
-                $recover = Secret::recover(array($shares[$i], $shares[$j]));
+                $recover = Secret::recover([$shares[$i], $shares[$j]]);
                 $this->assertSame($secret, $recover);
             }
         }

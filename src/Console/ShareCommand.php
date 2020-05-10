@@ -30,6 +30,11 @@ class ShareCommand extends Command
             InputArgument::OPTIONAL,
             'The secret to share'
         )->addOption(
+            'file',
+            'f',
+            InputOption::VALUE_OPTIONAL,
+            'File containing secret'
+        )->addOption(
             'shares',
             's',
             InputOption::VALUE_OPTIONAL,
@@ -49,7 +54,35 @@ class ShareCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $secret = $input->getArgument('secret');
+        $secret = null;
+
+        # check if data is given by STDIN
+        $readStreams = [STDIN];
+        $writeStreams = [];
+        $exceptStreams = [];
+        $streamCount = stream_select($readStreams, $writeStreams, $exceptStreams, 0);
+
+        if ($streamCount === 1) {
+            while (!feof(STDIN)) {
+                $secret .= fread(STDIN, 1024);
+            }
+        } else {
+            $file = $input->getOption('file');
+            if ($file !== null) {
+                # check for secret in file
+                if (!is_readable($file)) {
+                    $output->writeln('<error>ERROR: file "' . $file . '" is not readable.');
+                    exit(1);
+                }
+
+                $secret = file_get_contents($file);
+            }
+        }
+
+        if ($secret === null) {
+            $secret = $input->getArgument('secret');
+        }
+
         if (empty($secret)) {
             /** @var QuestionHelper $dialog */
             $helper = $this->getHelper('question');

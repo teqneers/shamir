@@ -27,26 +27,26 @@ Usage
 
 ```bash
 # bin/shamir.php
-Shamir's Shared Secret CLI version 1.0.0
+Shamir's Shared Secret CLI 1.1.0
 
 Usage:
- command [options] [arguments]
+  command [options] [arguments]
 
 Options:
- --help (-h)           Display this help message
- --quiet (-q)          Do not output any message
- --verbose (-v|vv|vvv) Increase the verbosity of messages: 1 for normal output, 2 for more verbose output and 3 for debug
- --version (-V)        Display this application version
- --ansi                Force ANSI output
- --no-ansi             Disable ANSI output
- --no-interaction (-n) Do not ask any interactive question
+  -h, --help            Display this help message
+  -q, --quiet           Do not output any message
+  -V, --version         Display this application version
+      --ansi            Force ANSI output
+      --no-ansi         Disable ANSI output
+  -n, --no-interaction  Do not ask any interactive question
+  -v|vv|vvv, --verbose  Increase the verbosity of messages: 1 for normal output, 2 for more verbose output and 3 for debug
 
 Available commands:
- help             Displays help for a command
- list             Lists commands
-shamir
- shamir:recover   Recover a shared secret
- shamir:share     Create a shared secret
+  help            Displays help for a command
+  list            Lists commands
+ shamir
+  shamir:recover  Recover a shared secret
+  shamir:share    Create a shared secret
 ```
 
 CLI Examples
@@ -73,6 +73,18 @@ Shared secret [empty to stop]:
   10201241j1x042l0m1j3n530c16123m1w3r
   102022f0o1e3g2v0c0j4f3w3v015r4k184s
   102032q5g0-0+2+0256572g1i4s4k5i0t5t
+  
+# echo -n "Share my secret" | bin/shamir.php shamir:share
+
+  102014k3:4:371u0i042i0p343t1i0h1l55
+  102021f5h1,3z14043l250i3s520r3*0v1*
+  102033*194n4i0n5m161,0b470x5n1z5s4l
+  
+# bin/shamir.php shamir:share -f path/to/secretFile
+
+  10201010-2p4+1:1c4947512b2-194,2,4*
+  102023+582#1q1k1,0c5s3s1*3o091i3i1q
+  10203243y3g3#122h221h2a1s484+3v3%3*
   
 # bin/shamir.php shamir:recover "10201241j1x042l0m1j3n530c16123m1w3r" "102032q5g0-0+2+0256572g1i4s4k5i0t5t"
 
@@ -111,7 +123,7 @@ var_dump(Secret::recover(array_slice($shares, 1, 3)));
 Requirements
 ============
 
-PHP 5.5.0 or above
+PHP 7.2.0 or above
 
 
 License

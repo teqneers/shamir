@@ -14,7 +14,7 @@ interface RandomGeneratorAware
     /**
      * Sets the random generator
      *
-     * @param Generator $generator
+     * @param  Generator  $generator
      */
     public function setRandomGenerator(Generator $generator);
 
