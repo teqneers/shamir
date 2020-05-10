@@ -2,7 +2,6 @@
 
 namespace TQ\Shamir\Tests;
 
-
 use PHPUnit\Framework\TestCase;
 use TQ\Shamir\Algorithm\Algorithm;
 use TQ\Shamir\Algorithm\RandomGeneratorAware;
@@ -13,6 +12,7 @@ use TQ\Shamir\Secret;
 class SecretTest extends TestCase
 {
     protected $secretUtf8 = 'Lorem ipsum dolor sit असरकारक संस्थान δισεντιας قبضتهم нолюёжжэ 問ナマ業71職げら覧品モス変害';
+
     protected $secretAscii;
 
     /**
@@ -27,7 +27,7 @@ class SecretTest extends TestCase
     public function invokeMethod(&$object, $methodName, array $parameters = [])
     {
         $reflection = new \ReflectionClass(get_class($object));
-        $method = $reflection->getMethod($methodName);
+        $method     = $reflection->getMethod($methodName);
         $method->setAccessible(true);
 
         return $method->invokeArgs($object, $parameters);
@@ -45,7 +45,7 @@ class SecretTest extends TestCase
     public function invokeStaticMethod($class, $methodName, array $parameters = [])
     {
         $reflection = new \ReflectionClass($class);
-        $method = $reflection->getMethod($methodName);
+        $method     = $reflection->getMethod($methodName);
         $method->setAccessible(true);
 
         return $method->invokeArgs(null, $parameters);
@@ -62,7 +62,6 @@ class SecretTest extends TestCase
         Secret::setRandomGenerator(null);
         Secret::setAlgorithm(null);
     }
-
 
     public function convertBaseProvider()
     {
@@ -178,6 +177,7 @@ class SecretTest extends TestCase
         for ($bytes = 1; $bytes < 8; ++$bytes) {
             $return[] = [$this->secretUtf8, $bytes];
         }
+
         return $return;
     }
 
@@ -193,7 +193,7 @@ class SecretTest extends TestCase
 
         // create new instance to check if all necessary values
         // are set with the keys
-        $shamir = new Shamir();
+        $shamir  = new Shamir();
         $recover = $shamir->recover(array_slice($shares, 0, 2));
         $this->assertSame($secret, $recover);
     }
@@ -268,7 +268,6 @@ class SecretTest extends TestCase
             $recover = Secret::recover(array_slice($shares, 0, 2));
             $this->assertSame($secret, $recover);
         }
-
     }
 
     public function testShareAndRecoverThreeBytes()
@@ -299,7 +298,6 @@ class SecretTest extends TestCase
     {
         $shamir = new Shamir();
         $shamir->setChunkSize(99);
-
     }
 
     /**
@@ -311,6 +309,4 @@ class SecretTest extends TestCase
 
         $shares = Secret::share($secret, 1, 2);
     }
-
-
 }
