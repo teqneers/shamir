@@ -2,6 +2,9 @@
 
 namespace TQ\Shamir\Algorithm;
 
+use OutOfRangeException;
+use RuntimeException;
+
 /**
  * Interface Algorithm
  *
@@ -17,7 +20,7 @@ interface Algorithm
      * @param  integer  $threshold  Minimum number of shares required for decryption
      *
      * @return  array               Secret shares
-     * @throws  \OutOfRangeException
+     * @throws OutOfRangeException
      */
     public function share($secret, $shares, $threshold = 2);
 
@@ -27,7 +30,7 @@ interface Algorithm
      * @param  array  $keys
      *
      * @return  string
-     * @throws  \RuntimeException
+     * @throws RuntimeException
      */
     public function recover(array $keys);
 }
