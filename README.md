@@ -125,6 +125,11 @@ Requirements
 
 PHP 7.2.0 or above
 
+Integrations
+============
+
+Tiki Wiki CMS Groupware: https://doc.tiki.org/Shared-Secret
+
 
 License
 =======
