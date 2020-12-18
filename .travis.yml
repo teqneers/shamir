@@ -1,6 +1,7 @@
 language: php
 
-sudo: false
+os: linux
+dist: focal
 
 cache:
     directories:
@@ -14,7 +15,7 @@ php:
   - nightly
 
 env:
-    matrix:
+    jobs:
         - COMPOSER_PARAM="update --prefer-source --prefer-lowest"
         - COMPOSER_PARAM="update --prefer-source"
 
@@ -29,6 +30,6 @@ after_script:
   - wget https://scrutinizer-ci.com/ocular.phar
   - php ocular.phar code-coverage:upload --format=php-clover coverage.clover
 
-matrix:
+jobs:
   allow_failures:
     - php: nightly
