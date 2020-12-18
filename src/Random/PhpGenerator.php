@@ -28,8 +28,8 @@ class PhpGenerator implements Generator
     /**
      * Constructor
      *
-     * @param  integer  $max  The maximum random number
-     * @param  integer  $min  The minimum random number
+     * @param  int  $max  The maximum random number
+     * @param  int  $min  The minimum random number
      */
     public function __construct($max = PHP_INT_MAX, $min = 1)
     {
@@ -42,15 +42,11 @@ class PhpGenerator implements Generator
      */
     public function getRandomInt()
     {
-        if (version_compare(PHP_VERSION, '7.0') >= 0) {
+        try {
             $random = random_int($this->min, $this->max);
-        } else {
-            $random = mt_rand($this->min, $this->max);
-        }
-
-        if ($random === false) {
+        } catch (\Exception $e) {
             throw new RuntimeException(
-                'Random number generator algorithm failed.'
+                'Random number generator algorithm failed.', 0, $e
             );
         }
 

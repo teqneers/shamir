@@ -24,7 +24,7 @@ class Shamir implements Algorithm, RandomGeneratorAware
      *
      * @const   string
      */
-    const DECIMAL = '0123456789';
+    protected const DECIMAL = '0123456789';
 
     /**
      * Target base characters to be used in passwords (shares)
@@ -34,14 +34,14 @@ class Shamir implements Algorithm, RandomGeneratorAware
      *
      * @const   string
      */
-    const CHARS = '0123456789abcdefghijklmnopqrstuvwxyz.,:;-+*#%';
+    protected const CHARS = '0123456789abcdefghijklmnopqrstuvwxyz.,:;-+*#%';
 
     /**
      * Character to fill up the secret keys
      *
      * @const   string
      */
-    const PAD_CHAR = '=';
+    protected const PAD_CHAR = '=';
 
     /**
      * Prime number has to be greater than the maximum number of shares possible
@@ -77,7 +77,7 @@ class Shamir implements Algorithm, RandomGeneratorAware
     /**
      * @inheritdoc
      */
-    public function getRandomGenerator()
+    public function getRandomGenerator(): Generator
     {
         if (!$this->randomGenerator) {
             $this->randomGenerator = new PhpGenerator();
@@ -88,9 +88,9 @@ class Shamir implements Algorithm, RandomGeneratorAware
 
     /**
      * @inheritdoc
-     * @return  Shamir
+     * @return Shamir
      */
-    public function setRandomGenerator(Generator $generator)
+    public function setRandomGenerator(Generator $generator): Shamir
     {
         $this->randomGenerator = $generator;
 
@@ -102,7 +102,7 @@ class Shamir implements Algorithm, RandomGeneratorAware
      *
      * @return int
      */
-    public function getChunkSize()
+    public function getChunkSize(): int
     {
         return $this->chunkSize;
     }
@@ -116,10 +116,10 @@ class Shamir implements Algorithm, RandomGeneratorAware
      *
      * @see
      * @param  int  $chunkSize  Size in number of bytes
-     * @return  Shamir
+     * @return Shamir
      * @throws OutOfRangeException
      */
-    public function setChunkSize($chunkSize)
+    public function setChunkSize($chunkSize): Shamir
     {
         $chunkSize   = (int)$chunkSize;
         $primeNumber = [1 => 257, 65537, 16777259, 4294967311, 1099511627791, 281474976710677, 72057594037928017];
@@ -144,12 +144,12 @@ class Shamir implements Algorithm, RandomGeneratorAware
      * If the chunk size has been set already, it will be changed, if
      * it is smaller than the necessary size.
      *
-     * @see     setChunkSize()
+     * @see    setChunkSize()
      * @param  int  $max  Maximum number of keys needed
-     * @return  Shamir
-     * @throws  \OutOfRangeException
+     * @return Shamir
+     * @throws \OutOfRangeException
      */
-    protected function setMaxShares($max)
+    protected function setMaxShares($max): Shamir
     {
         // the prime number has to be larger, than the maximum number
         // representable by the number of bytes. so we always need one
@@ -189,8 +189,8 @@ class Shamir implements Algorithm, RandomGeneratorAware
     /**
      * Calculate modulo of any given number using prime
      *
-     * @param  integer     Number
-     * @return  integer     Module of number
+     * @param  int     Number
+     * @return int     Module of number
      */
     protected function modulo($number)
     {
@@ -206,17 +206,17 @@ class Shamir implements Algorithm, RandomGeneratorAware
      * @param  int  $b
      * @return array
      */
-    protected function gcdD($a, $b)
+    protected function gcdD($a, $b): array
     {
         if ($b == 0) {
             return [$a, 1, 0];
-        } else {
-            $div    = floor(bcdiv($a, $b));
-            $mod    = bcmod($a, $b);
-            $decomp = $this->gcdD($b, $mod);
-
-            return [$decomp[0], $decomp[2], $decomp[1] - $decomp[2] * $div];
         }
+
+        $div    = floor(bcdiv($a, $b));
+        $mod    = bcmod($a, $b);
+        $decomp = $this->gcdD($b, $mod);
+
+        return [$decomp[0], $decomp[2], $decomp[1] - $decomp[2] * $div];
     }
 
     /**
@@ -239,10 +239,10 @@ class Shamir implements Algorithm, RandomGeneratorAware
      *
      * @param  array  $keyX
      * @param  int    $threshold
-     * @return  array
-     * @throws  \RuntimeException
+     * @return array
+     * @throws \RuntimeException
      */
-    protected function reverseCoefficients(array $keyX, $threshold)
+    protected function reverseCoefficients(array $keyX, $threshold): array
     {
         $coefficients = [];
 
@@ -270,11 +270,11 @@ class Shamir implements Algorithm, RandomGeneratorAware
     /**
      * Generate random coefficients
      *
-     * @param  integer  $threshold  Number of coefficients needed
+     * @param  int  $threshold  Number of coefficients needed
      *
-     * @return  array
+     * @return array
      */
-    protected function generateCoefficients($threshold)
+    protected function generateCoefficients($threshold): array
     {
         $coefficients = [];
         for ($i = 0; $i < $threshold - 1; $i++) {
@@ -297,9 +297,9 @@ class Shamir implements Algorithm, RandomGeneratorAware
      * 11 + x * ( 7 + x * ( -5 + x * ( -4 + x * 2 ) ) )
      *
      * @see    https://en.wikipedia.org/wiki/Horner%27s_method
-     * @param  integer  $xCoordinate   X coordinate
-     * @param  array    $coefficients  Polynomial coefficients
-     * @return  integer                     Y coordinate
+     * @param  int    $xCoordinate   X coordinate
+     * @param  array  $coefficients  Polynomial coefficients
+     * @return int                   Y coordinate
      */
     protected function hornerMethod($xCoordinate, array $coefficients)
     {
@@ -317,7 +317,7 @@ class Shamir implements Algorithm, RandomGeneratorAware
      * @param  string  $numberInput
      * @param  string  $fromBaseInput
      * @param  string  $toBaseInput
-     * @return  string
+     * @return string
      */
     protected static function convBase($numberInput, $fromBaseInput, $toBaseInput)
     {
@@ -336,7 +336,7 @@ class Shamir implements Algorithm, RandomGeneratorAware
             for ($i = 1; $i <= $numberLen; $i++) {
                 $retVal = bcadd(
                     $retVal,
-                    bcmul(array_search($number[$i - 1], $fromBase), bcpow($fromLen, $numberLen - $i))
+                    bcmul(array_search($number[$i - 1], $fromBase, true), bcpow($fromLen, $numberLen - $i))
                 );
             }
 
@@ -364,16 +364,16 @@ class Shamir implements Algorithm, RandomGeneratorAware
      * Convert each chunk of a binary data into decimal numbers.
      *
      * @param  string  $string  Binary string
-     * @return  array           Array with decimal converted numbers
+     * @return array            Array with decimal converted numbers
      */
-    protected function unpack($string)
+    protected function unpack($string): array
     {
         $chunk  = 0;
         $int    = null;
         $return = [];
         foreach (unpack('C*', $string) as $byte) {
             $int = bcadd($int, bcmul($byte, bcpow(2, $chunk * 8)));
-            if (++$chunk == $this->chunkSize) {
+            if (++$chunk === $this->chunkSize) {
                 $return[] = $int;
                 $chunk    = 0;
                 $int      = null;
@@ -393,10 +393,10 @@ class Shamir implements Algorithm, RandomGeneratorAware
      * represented with the number of given bytes and convert
      * its base.
      *
-     * @param  integer  $bytes  Bytes used to represent a string
-     * @return  integer Number of chars
+     * @param  int  $bytes  Bytes used to represent a string
+     * @return int          Number of chars
      */
-    protected function maxKeyLength($bytes)
+    protected function maxKeyLength($bytes): int
     {
         $maxInt    = bcpow(2, $bytes * 8);
         $converted = self::convBase($maxInt, self::DECIMAL, self::CHARS);
@@ -407,12 +407,12 @@ class Shamir implements Algorithm, RandomGeneratorAware
     /**
      * Divide secret into chunks and calculate coordinates
      *
-     * @param  string   $secret     Secret
-     * @param  integer  $shares     Number of parts to share
-     * @param  integer  $threshold  Minimum number of shares required for decryption
-     * @return  array
+     * @param  string  $secret     Secret
+     * @param  int     $shares     Number of parts to share
+     * @param  int     $threshold  Minimum number of shares required for decryption
+     * @return array
      */
-    protected function divideSecret($secret, $shares, $threshold)
+    protected function divideSecret($secret, $shares, $threshold): array
     {
         // divide secret into chunks, which we encrypt one by one
         $result = [];
@@ -434,7 +434,7 @@ class Shamir implements Algorithm, RandomGeneratorAware
     /**
      * @inheritdoc
      */
-    public function share($secret, $shares, $threshold = 2)
+    public function share($secret, $shares, $threshold = 2): array
     {
         $this->setMaxShares($shares);
 
@@ -497,14 +497,14 @@ class Shamir implements Algorithm, RandomGeneratorAware
     /**
      * Decode and merge secret chunks
      *
-     * @param  array    $keyX       Keys for X coordinates
-     * @param  array    $keyY       Keys for Y coordinates
-     * @param  integer  $bytes      Chunk size in bytes
-     * @param  integer  $keyLen     Key length in chunks
-     * @param  integer  $threshold  Minimum number of shares required for decryption
+     * @param  array  $keyX       Keys for X coordinates
+     * @param  array  $keyY       Keys for Y coordinates
+     * @param  int    $bytes      Chunk size in bytes
+     * @param  int    $keyLen     Key length in chunks
+     * @param  int    $threshold  Minimum number of shares required for decryption
      * @return string
      */
-    protected function joinSecret($keyX, $keyY, $bytes, $keyLen, $threshold)
+    protected function joinSecret($keyX, $keyY, $bytes, $keyLen, $threshold): string
     {
         $coefficients = $this->reverseCoefficients($keyX, $threshold);
 
@@ -530,7 +530,7 @@ class Shamir implements Algorithm, RandomGeneratorAware
     /**
      * @inheritdoc
      */
-    public function recover(array $keys)
+    public function recover(array $keys): string
     {
         if (!count($keys)) {
             throw new \RuntimeException('No keys given.');
@@ -557,7 +557,7 @@ class Shamir implements Algorithm, RandomGeneratorAware
 
             // extract "public" information of key: bytes, threshold, sequence
 
-            list($keyBytes, $keyThreshold, $keySequence, $key) = sscanf($key, $keyFormat);
+            [$keyBytes, $keyThreshold, $keySequence, $key] = sscanf($key, $keyFormat);
             $keyThreshold = (int)self::convBase($keyThreshold, self::CHARS, self::DECIMAL);
             $keySequence  = (int)self::convBase($keySequence, self::CHARS, self::DECIMAL);
 
@@ -574,7 +574,7 @@ class Shamir implements Algorithm, RandomGeneratorAware
             $keyX[] = $keySequence;
             if ($keyLen === null) {
                 $keyLen = strlen($key);
-            } elseif ($keyLen != strlen($key)) {
+            } elseif ($keyLen !== strlen($key)) {
                 throw new \RuntimeException('Given keys vary in key length.');
             }
             for ($i = 0; $i < $keyLen; $i += $maxBaseLength) {

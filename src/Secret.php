@@ -73,9 +73,9 @@ class Secret
     /**
      * Returns the algorithm
      *
-     * @return  Algorithm
+     * @return  Algorithm|null
      */
-    public static function getAlgorithm()
+    public static function getAlgorithm(): ?Algorithm
     {
         if (!self::$algorithm) {
             self::setAlgorithm(new Shamir(), false);
@@ -87,12 +87,12 @@ class Secret
     /**
      * Overrides the algorithm to use
      *
-     * @param  Algorithm  $algorithm
-     * @param  boolean    $returnOld  True to return the old algorithm
+     * @param  Algorithm|null  $algorithm
+     * @param  boolean         $returnOld  True to return the old algorithm
      *
      * @return  Algorithm|null The old algorithm if $returnOld is true
      */
-    public static function setAlgorithm(Algorithm $algorithm = null, $returnOld = true)
+    public static function setAlgorithm(Algorithm $algorithm = null, $returnOld = true): ?Algorithm
     {
         if ($returnOld) {
             $oldAlgorithm = self::getAlgorithm();
@@ -111,14 +111,14 @@ class Secret
     /**
      * Generate shared secrets
      *
-     * @param  string   $secret     Secret
-     * @param  integer  $shares     Number of parts to share
-     * @param  integer  $threshold  Minimum number of shares required for decryption
+     * @param  string  $secret     Secret
+     * @param  int     $shares     Number of parts to share
+     * @param  int     $threshold  Minimum number of shares required for decryption
      *
-     * @return  array               Secret shares
+     * @return  array              Secret shares
      * @throws  \OutOfBoundsException
      */
-    public static function share($secret, $shares, $threshold = 2)
+    public static function share($secret, $shares, $threshold = 2): array
     {
         return self::getAlgorithm()->share($secret, $shares, $threshold);
     }
@@ -130,7 +130,7 @@ class Secret
      *
      * @return  string
      */
-    public static function recover(array $keys)
+    public static function recover(array $keys): string
     {
         return self::getAlgorithm()->recover($keys);
     }

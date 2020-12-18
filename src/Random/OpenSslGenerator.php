@@ -16,7 +16,7 @@ class OpenSslGenerator implements Generator
     /**
      * Length of the desired string of bytes
      *
-     * @var integer
+     * @var int
      */
     protected $bytes = PHP_INT_SIZE;
 
@@ -30,8 +30,8 @@ class OpenSslGenerator implements Generator
     /**
      * Constructor
      *
-     * @param  integer  $bytes        Bytes to use in result
-     * @param  bool     $forceStrong  Force strong random number generation
+     * @param  int   $bytes        Bytes to use in result
+     * @param  bool  $forceStrong  Force strong random number generation
      */
     public function __construct($bytes = PHP_INT_SIZE, $forceStrong = true)
     {

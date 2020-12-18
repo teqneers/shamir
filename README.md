@@ -12,11 +12,11 @@ Project information: [![License](https://img.shields.io/github/license/teqneers/
 
 This is Shamir's Shared Secret implementation in PHP. It allows you to create shared secrets using the PHP classes or the CLI interface.
 
-The cryptographic algorithm was create by the famous Adi Shamir, who also provided his name to the Rivest-__Shamir__-Adleman cryptosystem (RSA). The Shared Secret algorithm allows to divide a secret into parts (called shares). Each part can be handed out to a person or organization. The nice thing about this algorithm is, that some or all parts are needed to reconstruct the secret (called threshold). Most important about a secure way of [sharing a secret](http://en.wikipedia.org/wiki/Secret_sharing) is, that it complies to the following requirement:
+The cryptographic algorithm was created by the famous Adi Shamir, who also provided his name to the Rivest-__Shamir__-Adleman cryptosystem (RSA). The Shared Secret algorithm allows to divide a secret into parts (called shares). Each part can be handed out to a person or organization. The nice thing about this algorithm is, that some or all parts are needed to reconstruct the secret (called threshold). Most important about a secure way of [sharing a secret](http://en.wikipedia.org/wiki/Secret_sharing) is, that it complies to the following requirement:
 
 * exposure of one share does NOT expose any more hints to an attacker
-* pre defined number of shares are required to obtain secret
-* knowledge of all-but-one no better then knowing none
+* predefined number of shares are required to obtain secret
+* knowledge of all-but-one no better than knowing none
 * shares combined have same magnitude in length than secret itself
 
 This implementation can handle more than 256 shares and encodes the results in a compressed, but readable way.
@@ -73,19 +73,19 @@ Shared secret [empty to stop]:
   10201241j1x042l0m1j3n530c16123m1w3r
   102022f0o1e3g2v0c0j4f3w3v015r4k184s
   102032q5g0-0+2+0256572g1i4s4k5i0t5t
-  
+
 # echo -n "Share my secret" | bin/shamir.php shamir:share
 
   102014k3:4:371u0i042i0p343t1i0h1l55
   102021f5h1,3z14043l250i3s520r3*0v1*
   102033*194n4i0n5m161,0b470x5n1z5s4l
-  
+
 # bin/shamir.php shamir:share -f path/to/secretFile
 
   10201010-2p4+1:1c4947512b2-194,2,4*
   102023+582#1q1k1,0c5s3s1*3o091i3i1q
   10203243y3g3#122h221h2a1s484+3v3%3*
-  
+
 # bin/shamir.php shamir:recover "10201241j1x042l0m1j3n530c16123m1w3r" "102032q5g0-0+2+0256572g1i4s4k5i0t5t"
 
   Share my secret

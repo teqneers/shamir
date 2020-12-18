@@ -2,6 +2,7 @@
 
 namespace TQ\Shamir\Tests;
 
+use PHPUnit\Framework\MockObject\MockBuilder;
 use PHPUnit\Framework\TestCase;
 use TQ\Shamir\Algorithm\Algorithm;
 use TQ\Shamir\Algorithm\RandomGeneratorAware;
@@ -18,13 +19,13 @@ class SecretTest extends TestCase
     /**
      * Call protected/private method of a class.
      *
-     * @param  object &$object      Instantiated object that we will run method on.
+     * @param  object  $object      Instantiated object that we will run method on.
      * @param  string  $methodName  Method name to call
      * @param  array   $parameters  Array of parameters to pass into method.
      *
      * @return mixed Method return.
      */
-    public function invokeMethod(&$object, $methodName, array $parameters = [])
+    public function invokeMethod($object, $methodName, array $parameters = [])
     {
         $reflection = new \ReflectionClass(get_class($object));
         $method     = $reflection->getMethod($methodName);
@@ -51,13 +52,13 @@ class SecretTest extends TestCase
         return $method->invokeArgs(null, $parameters);
     }
 
-    protected function setUp()
+    protected function setUp(): void
     {
         Secret::setRandomGenerator(null);
         Secret::setAlgorithm(null);
     }
 
-    protected function tearDown()
+    protected function tearDown(): void
     {
         Secret::setRandomGenerator(null);
         Secret::setAlgorithm(null);
@@ -105,57 +106,57 @@ class SecretTest extends TestCase
     public function testConvBase($numberInput, $fromBaseInput, $toBaseInput, $expected)
     {
         $returnVal = $this->invokeStaticMethod(
-            'TQ\Shamir\Algorithm\Shamir',
+            Shamir::class,
             'convBase',
             [$numberInput, $fromBaseInput, $toBaseInput]
         );
-        $this->assertEquals($expected, $returnVal);
+        self::assertEquals($expected, $returnVal);
     }
 
     public function testReturnsDefaultAlgorithm()
     {
-        $this->assertInstanceOf('\TQ\Shamir\Algorithm\Algorithm', Secret::getAlgorithm());
+        self::assertInstanceOf(Algorithm::class, Secret::getAlgorithm());
     }
 
     public function testReturnsDefaultRandomGenerator()
     {
-        $this->assertInstanceOf('\TQ\Shamir\Random\Generator', Secret::getRandomGenerator());
+        self::assertInstanceOf(Generator::class, Secret::getRandomGenerator());
     }
 
     public function testSetNewAlgorithmReturnsOld()
     {
         $current = Secret::getAlgorithm();
-        /** @var \PHPUnit_Framework_MockObject_MockObject|Algorithm $new */
-        $new = $this->getMockBuilder('\TQ\Shamir\Algorithm\Algorithm')->setMethods(['share', 'recover'])->getMock();
+        /** @var MockBuilder|Algorithm $new */
+        $new = $this->getMockBuilder(Algorithm::class)->onlyMethods(['share', 'recover'])->getMock();
 
-        $this->assertSame($current, Secret::setAlgorithm($new));
-        $this->assertSame($new, Secret::getAlgorithm());
+        self::assertSame($current, Secret::setAlgorithm($new));
+        self::assertSame($new, Secret::getAlgorithm());
 
         // don't return old one with returnOld = false
-        $this->assertSame(null, Secret::setAlgorithm($new, false));
+        self::assertNull(Secret::setAlgorithm($new, false));
     }
 
     public function testSetNewRandomGeneratorReturnsOld()
     {
         $current = Secret::getRandomGenerator();
-        /** @var \PHPUnit_Framework_MockObject_MockObject|Generator $new */
-        $new = $this->getMockBuilder('\TQ\Shamir\Random\Generator')->setMethods(['getRandomInt'])->getMock();
+        /** @var MockBuilder|Generator $new */
+        $new = $this->getMockBuilder(Generator::class)->onlyMethods(['getRandomInt'])->getMock();
 
-        $this->assertSame($current, Secret::setRandomGenerator($new));
-        $this->assertSame($new, Secret::getRandomGenerator());
+        self::assertSame($current, Secret::setRandomGenerator($new));
+        self::assertSame($new, Secret::getRandomGenerator());
     }
 
     public function testSetNewRandomGeneratorUpdatesGeneratorOnAlgorithm()
     {
-        /** @var \PHPUnit_Framework_MockObject_MockObject|Generator $new */
-        $new = $this->getMockBuilder('\TQ\Shamir\Random\Generator')->setMethods(['getRandomInt'])->getMock();
+        /** @var MockBuilder|Generator $new */
+        $new = $this->getMockBuilder(Generator::class)->onlyMethods(['getRandomInt'])->getMock();
 
         Secret::setRandomGenerator($new);
         $algorithm = Secret::getAlgorithm();
         if (!$algorithm instanceof RandomGeneratorAware) {
-            $this->markTestSkipped('Algorithm does not implement RandomGeneratorAware');
+            self::markTestSkipped('Algorithm does not implement RandomGeneratorAware');
         }
-        $this->assertSame($new, $algorithm->getRandomGenerator());
+        self::assertSame($new, $algorithm->getRandomGenerator());
     }
 
     public function provideShareAndRecoverMultipleBytes()
@@ -195,7 +196,7 @@ class SecretTest extends TestCase
         // are set with the keys
         $shamir  = new Shamir();
         $recover = $shamir->recover(array_slice($shares, 0, 2));
-        $this->assertSame($secret, $recover);
+        self::assertSame($secret, $recover);
     }
 
     public function testShareAndRecoverShuffleKeys()
@@ -204,10 +205,11 @@ class SecretTest extends TestCase
 
         $shares = Secret::share($secret, 50, 2);
 
-        for ($i = 0; $i < count($shares); ++$i) {
-            for ($j = $i + 1; $j < count($shares); ++$j) {
+        $num = count($shares);
+        for ($i = 0; $i < $num; ++$i) {
+            for ($j = $i + 1; $j < $num; ++$j) {
                 $recover = Secret::recover([$shares[$i], $shares[$j]]);
-                $this->assertSame($secret, $recover);
+                self::assertSame($secret, $recover);
             }
         }
     }
@@ -219,16 +221,16 @@ class SecretTest extends TestCase
         $shares = Secret::share($secret, 10, 2);
 
         $recover = Secret::recover(array_slice($shares, 0, 2));
-        $this->assertSame($secret, $recover);
+        self::assertSame($secret, $recover);
 
         $recover = Secret::recover(array_slice($shares, 2, 2));
-        $this->assertSame($secret, $recover);
+        self::assertSame($secret, $recover);
 
         $recover = Secret::recover(array_slice($shares, 4, 2));
-        $this->assertSame($secret, $recover);
+        self::assertSame($secret, $recover);
 
         $recover = Secret::recover(array_slice($shares, 5, 4));
-        $this->assertSame($secret, $recover);
+        self::assertSame($secret, $recover);
 
         // test different length of secret
         $template = 'abcdefghijklmnopqrstuvwxyz';
@@ -237,7 +239,7 @@ class SecretTest extends TestCase
             $shares = Secret::share($secret, 3, 2);
 
             $recover = Secret::recover(array_slice($shares, 0, 2));
-            $this->assertSame($secret, $recover);
+            self::assertSame($secret, $recover);
         }
     }
 
@@ -248,16 +250,16 @@ class SecretTest extends TestCase
         $shares = Secret::share($secret, 260, 2);
 
         $recover = Secret::recover(array_slice($shares, 0, 2));
-        $this->assertSame($secret, $recover);
+        self::assertSame($secret, $recover);
 
         $recover = Secret::recover(array_slice($shares, 2, 2));
-        $this->assertSame($secret, $recover);
+        self::assertSame($secret, $recover);
 
         $recover = Secret::recover(array_slice($shares, 4, 2));
-        $this->assertSame($secret, $recover);
+        self::assertSame($secret, $recover);
 
         $recover = Secret::recover(array_slice($shares, 6, 4));
-        $this->assertSame($secret, $recover);
+        self::assertSame($secret, $recover);
 
         // test different length of secret
         $template = 'abcdefghijklmnopqrstuvwxyz';
@@ -266,7 +268,7 @@ class SecretTest extends TestCase
             $shares = Secret::share($secret, 260, 2);
 
             $recover = Secret::recover(array_slice($shares, 0, 2));
-            $this->assertSame($secret, $recover);
+            self::assertSame($secret, $recover);
         }
     }
 
@@ -277,7 +279,7 @@ class SecretTest extends TestCase
         $shares = Secret::share($secret, 75000, 2);
 
         $recover = Secret::recover(array_slice($shares, 0, 2));
-        $this->assertSame($secret, $recover);
+        self::assertSame($secret, $recover);
     }
 
     /**
@@ -288,25 +290,23 @@ class SecretTest extends TestCase
         $shamir = new Shamir();
         $shamir->setChunkSize($bytes);
 
-        $this->assertSame($shamir->getChunkSize(), $bytes);
+        self::assertSame($shamir->getChunkSize(), $bytes);
     }
 
-    /**
-     * @expectedException OutOfRangeException
-     */
     public function testSetChunkSizeException()
     {
+        $this->expectException(\OutOfRangeException::class);
+
         $shamir = new Shamir();
         $shamir->setChunkSize(99);
     }
 
-    /**
-     * @expectedException OutOfRangeException
-     */
     public function testShareAndShareSmallerThreshold()
     {
+        $this->expectException(\OutOfRangeException::class);
+
         $secret = 'abc ABC 123 !@# ,./ \'"\\ <>?';
 
-        $shares = Secret::share($secret, 1, 2);
+        Secret::share($secret, 1, 2);
     }
 }

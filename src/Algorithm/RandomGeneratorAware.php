@@ -23,5 +23,5 @@ interface RandomGeneratorAware
      *
      * @return Generator
      */
-    public function getRandomGenerator();
+    public function getRandomGenerator(): Generator;
 }

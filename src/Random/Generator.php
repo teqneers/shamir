@@ -12,7 +12,7 @@ interface Generator
     /**
      * Returns a random number
      *
-     * @return int
+     * @return int|float
      */
     public function getRandomInt();
 }

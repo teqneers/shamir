@@ -33,18 +33,18 @@ class RandomTest extends TestCase
         // max 10% of equal numbers
         $repetition = $this->num * 0.1;
         foreach ($list as $r => $n) {
-            $this->assertLessThan(
+            self::assertLessThan(
                 $repetition,
                 $n,
                 'Not random enough. Too many equal numbers found. In theory this might happen, but is very unlikely. You might want to run test again.'
             );
-            $this->assertLessThanOrEqual($this->max, $r, 'Random number bigger than expected.');
-            $this->assertGreaterThanOrEqual($this->min, $r, 'Random number bigger than expected.');
+            self::assertLessThanOrEqual($this->max, $r, 'Random number bigger than expected.');
+            self::assertGreaterThanOrEqual($this->min, $r, 'Random number bigger than expected.');
         }
 
         // check if we get at least 75% unique/different numbers
         $distribution = $this->num * 0.75;
-        $this->assertGreaterThan(
+        self::assertGreaterThan(
             $distribution,
             count($list),
             'Not random. Too many same results. In theory this might happen. You might want wo run test again.'
@@ -86,7 +86,7 @@ class RandomTest extends TestCase
     public function testOpenSslGeneratorSequence()
     {
         if (!function_exists('openssl_random_pseudo_bytes')) {
-            $this->markTestSkipped('OpenSSL not compiled into PHP.');
+            self::markTestSkipped('OpenSSL not compiled into PHP.');
         }
 
         $random = new OpenSslGenerator($this->byte);
@@ -106,7 +106,7 @@ class RandomTest extends TestCase
     public function testOpenSslGeneratorInit()
     {
         if (!function_exists('openssl_random_pseudo_bytes')) {
-            $this->markTestSkipped('OpenSSL not compiled into PHP.');
+            self::markTestSkipped('OpenSSL not compiled into PHP.');
         }
 
         $i    = $this->num;

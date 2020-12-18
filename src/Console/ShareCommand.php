@@ -24,7 +24,7 @@ class ShareCommand extends Command
     /**
      * @inheritdoc
      */
-    protected function configure()
+    protected function configure(): void
     {
         $this->setName('shamir:share')->setDescription('Create a shared secret')->addArgument(
             'secret',

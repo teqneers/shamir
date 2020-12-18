@@ -16,7 +16,7 @@ class RecoverCommand extends Command
     /**
      * @inheritdoc
      */
-    protected function configure()
+    protected function configure(): void
     {
         $this->setName('shamir:recover')->setDescription('Recover a shared secret')->addArgument(
             'shares',
