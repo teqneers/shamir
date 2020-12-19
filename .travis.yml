@@ -1,7 +1,6 @@
 language: php
 
 os: linux
-dist: focal
 
 cache:
     directories:
