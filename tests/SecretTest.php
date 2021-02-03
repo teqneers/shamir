@@ -2,8 +2,10 @@
 
 namespace TQ\Shamir\Tests;
 
+use OutOfRangeException;
 use PHPUnit\Framework\MockObject\MockBuilder;
 use PHPUnit\Framework\TestCase;
+use ReflectionClass;
 use TQ\Shamir\Algorithm\Algorithm;
 use TQ\Shamir\Algorithm\RandomGeneratorAware;
 use TQ\Shamir\Algorithm\Shamir;
@@ -27,7 +29,7 @@ class SecretTest extends TestCase
      */
     public function invokeMethod($object, $methodName, array $parameters = [])
     {
-        $reflection = new \ReflectionClass(get_class($object));
+        $reflection = new ReflectionClass(get_class($object));
         $method     = $reflection->getMethod($methodName);
         $method->setAccessible(true);
 
@@ -45,7 +47,7 @@ class SecretTest extends TestCase
      */
     public function invokeStaticMethod($class, $methodName, array $parameters = [])
     {
-        $reflection = new \ReflectionClass($class);
+        $reflection = new ReflectionClass($class);
         $method     = $reflection->getMethod($methodName);
         $method->setAccessible(true);
 
@@ -64,7 +66,7 @@ class SecretTest extends TestCase
         Secret::setAlgorithm(null);
     }
 
-    public function convertBaseProvider()
+    public function provideConvertBase()
     {
         return [
             # dec -> dec
@@ -101,7 +103,7 @@ class SecretTest extends TestCase
     }
 
     /**
-     * @dataProvider convertBaseProvider
+     * @dataProvider provideConvertBase
      */
     public function testConvBase($numberInput, $fromBaseInput, $toBaseInput, $expected)
     {
@@ -293,17 +295,31 @@ class SecretTest extends TestCase
         self::assertSame($shamir->getChunkSize(), $bytes);
     }
 
-    public function testSetChunkSizeException()
+    public function provideChunkSize()
     {
-        $this->expectException(\OutOfRangeException::class);
+        return [
+            ['string'],
+            [0],
+            [8],
+            [99],
+            [0.5],
+        ];
+    }
+
+    /**
+     * @dataProvider provideChunkSize
+     */
+    public function testOpenSslGeneratorInputExceptions($chunkSize)
+    {
+        $this->expectException(OutOfRangeException::class);
 
         $shamir = new Shamir();
-        $shamir->setChunkSize(99);
+        $shamir->setChunkSize($chunkSize);
     }
 
     public function testShareAndShareSmallerThreshold()
     {
-        $this->expectException(\OutOfRangeException::class);
+        $this->expectException(OutOfRangeException::class);
 
         $secret = 'abc ABC 123 !@# ,./ \'"\\ <>?';
 

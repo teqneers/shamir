@@ -29,10 +29,14 @@ class PhpGenerator implements Generator
      * Constructor
      *
      * @param  int  $max  The maximum random number
-     * @param  int  $min  The minimum random number
+     * @param  int  $min  The minimum random number (must be positive)
      */
     public function __construct($max = PHP_INT_MAX, $min = 1)
     {
+        if((int)$min < 1) {
+            throw new \OutOfRangeException('The min number must be a positive integer.');
+        }
+
         $this->min = (int)$min;
         $this->max = (int)$max;
     }

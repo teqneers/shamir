@@ -8,20 +8,18 @@ use TQ\Shamir\Random\PhpGenerator;
 
 class RandomTest extends TestCase
 {
-    protected $num = 100;
+    protected static $num = 100;
 
-    protected $byte = 3;    // 3 bytes negative
+    protected static $byte = 3;    // 3 bytes negative
 
-    protected $min;
+    protected static $min;
 
-    protected $max;
+    protected static $max;
 
-    public function __construct()
+    public static function setUpBeforeClass(): void
     {
-        parent::__construct();
-
-        $this->min = -1 << ($this->byte * 8);
-        $this->max = 1 << ($this->byte * 8);
+        self::$min = 1;
+        self::$max = 1 << (self::$byte * 8);
     }
 
     protected function checkRandom($list)
@@ -31,19 +29,19 @@ class RandomTest extends TestCase
         // and deliver different results
 
         // max 10% of equal numbers
-        $repetition = $this->num * 0.1;
+        $repetition = self::$num * 0.1;
         foreach ($list as $r => $n) {
             self::assertLessThan(
                 $repetition,
                 $n,
                 'Not random enough. Too many equal numbers found. In theory this might happen, but is very unlikely. You might want to run test again.'
             );
-            self::assertLessThanOrEqual($this->max, $r, 'Random number bigger than expected.');
-            self::assertGreaterThanOrEqual($this->min, $r, 'Random number bigger than expected.');
+            self::assertLessThanOrEqual(self::$max, $r, 'Random number bigger than expected.');
+            self::assertGreaterThanOrEqual(self::$min, $r, 'Random number bigger than expected.');
         }
 
         // check if we get at least 75% unique/different numbers
-        $distribution = $this->num * 0.75;
+        $distribution = self::$num * 0.75;
         self::assertGreaterThan(
             $distribution,
             count($list),
@@ -51,10 +49,30 @@ class RandomTest extends TestCase
         );
     }
 
+    public function provideRandomInput()
+    {
+        return [
+            [PHP_INT_MAX, 'string', 'OutOfRangeException'],
+            [PHP_INT_MAX, 0, 'OutOfRangeException'],
+            [PHP_INT_MAX, 0.5, 'OutOfRangeException'],
+            [1, 5, 'ValueError'],
+        ];
+    }
+
+    /**
+     * @dataProvider provideRandomInput
+     */
+    public function testPhpGeneratorInputException($max, $min, $exception)
+    {
+        $this->expectException($exception);
+        $generator = new PhpGenerator($max, $min);
+        $generator->getRandomInt();
+    }
+
     public function testPhpGeneratorSequence()
     {
-        $random = new PhpGenerator($this->max, $this->min);
-        $i      = $this->num;
+        $random = new PhpGenerator(self::$max, self::$min);
+        $i      = self::$num;
         $list   = [];
         while ($i--) {
             $r = $random->getRandomInt();
@@ -69,10 +87,10 @@ class RandomTest extends TestCase
 
     public function testPhpGeneratorInit()
     {
-        $i    = $this->num;
+        $i    = self::$num;
         $list = [];
         while ($i--) {
-            $random = new PhpGenerator($this->max, $this->min);
+            $random = new PhpGenerator(self::$max, self::$min);
             $r      = $random->getRandomInt();
             if (!isset($list[$r])) {
                 $list[$r] = 0;
@@ -83,14 +101,48 @@ class RandomTest extends TestCase
         $this->checkRandom($list);
     }
 
+    public function testOpenSslGeneratorInput()
+    {
+        if (!function_exists('openssl_random_pseudo_bytes')) {
+            self::markTestSkipped('OpenSSL not compiled into PHP.');
+        }
+
+        $random = new OpenSslGenerator(self::$byte);
+
+        // check default is forceStrong
+        self::assertTrue($random->isForceStrong());
+    }
+
+    public function provideOpenSslBytes()
+    {
+        return [
+            ['string'],
+            [0],
+            [0.5],
+        ];
+    }
+
+    /**
+     * @dataProvider provideOpenSslBytes
+     */
+    public function testOpenSslGeneratorInputException($bytes)
+    {
+        if (!function_exists('openssl_random_pseudo_bytes')) {
+            self::markTestSkipped('OpenSSL not compiled into PHP.');
+        }
+
+        $this->expectException('OutOfRangeException');
+        new OpenSslGenerator($bytes);
+    }
+
     public function testOpenSslGeneratorSequence()
     {
         if (!function_exists('openssl_random_pseudo_bytes')) {
             self::markTestSkipped('OpenSSL not compiled into PHP.');
         }
 
-        $random = new OpenSslGenerator($this->byte);
-        $i      = $this->num;
+        $random = new OpenSslGenerator(self::$byte);
+        $i      = self::$num;
         $list   = [];
         while ($i--) {
             $r = $random->getRandomInt();
@@ -109,10 +161,10 @@ class RandomTest extends TestCase
             self::markTestSkipped('OpenSSL not compiled into PHP.');
         }
 
-        $i    = $this->num;
+        $i    = self::$num;
         $list = [];
         while ($i--) {
-            $random = new OpenSslGenerator($this->byte);
+            $random = new OpenSslGenerator(self::$byte);
             $r      = $random->getRandomInt();
             if (!isset($list[$r])) {
                 $list[$r] = 0;

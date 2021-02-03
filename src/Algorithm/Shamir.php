@@ -124,8 +124,10 @@ class Shamir implements Algorithm, RandomGeneratorAware
         $chunkSize   = (int)$chunkSize;
         $primeNumber = [1 => 257, 65537, 16777259, 4294967311, 1099511627791, 281474976710677, 72057594037928017];
 
-        if ($chunkSize > 7) {
-            throw new \OutOfRangeException('Chunk sizes with that many bytes are not implemented yet.');
+        if (!isset($primeNumber[$chunkSize])) {
+            throw new \OutOfRangeException(
+                'Chunk size with '.$chunkSize.' bytes is not allowed. Use 1 to '.count($primeNumber).'.'
+            );
         }
 
         $this->chunkSize = $chunkSize;

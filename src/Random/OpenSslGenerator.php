@@ -35,8 +35,20 @@ class OpenSslGenerator implements Generator
      */
     public function __construct($bytes = PHP_INT_SIZE, $forceStrong = true)
     {
+        if((int)$bytes < 1) {
+            throw new \OutOfRangeException('The length of the desired string of bytes. Must be a positive integer.');
+        }
+
         $this->bytes       = (int)$bytes;
         $this->forceStrong = (bool)$forceStrong;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isForceStrong(): bool
+    {
+        return $this->forceStrong;
     }
 
     /**
