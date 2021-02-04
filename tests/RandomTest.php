@@ -55,7 +55,7 @@ class RandomTest extends TestCase
             [PHP_INT_MAX, 'string', 'OutOfRangeException'],
             [PHP_INT_MAX, 0, 'OutOfRangeException'],
             [PHP_INT_MAX, 0.5, 'OutOfRangeException'],
-            [1, 5, 'ValueError'],
+            [1, 5, 'Error'],
         ];
     }
 
