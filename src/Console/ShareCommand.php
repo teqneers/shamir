@@ -55,30 +55,7 @@ class ShareCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $secret = null;
-
-        # check if data is given by STDIN
-        $readStreams = [STDIN];
-        $writeStreams = [];
-        $exceptStreams = [];
-        $streamCount = stream_select($readStreams, $writeStreams, $exceptStreams, 0);
-
-        if ($streamCount === 1) {
-            while (!feof(STDIN)) {
-                $secret .= fread(STDIN, 1024);
-            }
-        } else {
-            $file = $input->getOption('file');
-            if ($file !== null) {
-                # check for secret in file
-                if (!is_readable($file)) {
-                    $output->writeln('<error>ERROR: file "' . $file . '" is not readable.');
-                    exit(1);
-                }
-
-                $secret = file_get_contents($file);
-            }
-        }
+        $secret = $this->readFile($input, $output);
 
         if ($secret === null) {
             $secret = $input->getArgument('secret');
@@ -131,5 +108,43 @@ class ShareCommand extends Command
         $output->writeln($block);
 
         return 0;
+    }
+
+    /**
+     * Check STDIN or file option for input of secret
+     *
+     * @param  InputInterface   $input
+     * @param  OutputInterface  $output
+     * @return string|null
+     */
+    protected function readFile(InputInterface $input, OutputInterface $output): ?string
+    {
+        $secret = null;
+
+        # check if data is given by STDIN
+        $readStreams   = [STDIN];
+        $writeStreams  = [];
+        $exceptStreams = [];
+        $streamCount   = stream_select($readStreams, $writeStreams, $exceptStreams, 0);
+
+        if ($streamCount === 1) {
+            while (!feof(STDIN)) {
+                $secret .= fread(STDIN, 1024);
+            }
+        } else {
+            $file = $input->getOption('file');
+
+            if ($file !== null) {
+                # check for secret in file
+                if (!is_readable($file)) {
+                    $output->writeln('<error>ERROR: file "'.$file.'" is not readable.');
+                    exit(1);
+                }
+
+                $secret = file_get_contents($file);
+            }
+        }
+
+        return $secret;
     }
 }

@@ -101,7 +101,7 @@ class CliTest extends TestCase
     /**
      * @dataProvider provideUsage
      */
-    public function testUsage($cmd, $regexp)
+    public function testUsage($cmd, $regexp): void
     {
         $ret = $this->execute($cmd);
 
@@ -110,7 +110,7 @@ class CliTest extends TestCase
         self::assertSame('', $ret['err']);
     }
 
-    public function testWrongCommand()
+    public function testWrongCommand(): void
     {
         $ret = $this->execute($this->cmd.' quatsch');
 
@@ -119,7 +119,7 @@ class CliTest extends TestCase
         self::assertRegExp('(.*Command "quatsch" is not defined..*)', $ret['err']);
     }
 
-    public function testUsageQuiet()
+    public function testUsageQuiet(): void
     {
         $ret = $this->execute($this->cmd.' help -q');
 
@@ -128,7 +128,7 @@ class CliTest extends TestCase
         self::assertSame('', $ret['err']);
     }
 
-    public function testVersion()
+    public function testVersion(): void
     {
         $ret = $this->execute($this->cmd.' -V');
 
@@ -136,16 +136,16 @@ class CliTest extends TestCase
         self::assertRegExp('(Shamir\'s Shared Secret CLI.*)', $ret['std']);
     }
 
-//    public function testFileInput()
-//    {
-//        $ret = $this->execute($this->cmd.' shamir:share -f tests/secret.txt');
-//        self::assertEquals(0, $ret['ret']);
-//        self::assertRegExp('(10201.*)', $ret['std']);
-//        self::assertRegExp('(10202.*)', $ret['std']);
-//        self::assertRegExp('(10203.*)', $ret['std']);
-//    }
+    public function testFileInput(): void
+    {
+        $ret = $this->execute($this->cmd.' shamir:share -f tests/secret.txt');
+        self::assertEquals(0, $ret['ret']);
+        self::assertRegExp('(10201.*)', $ret['std']);
+        self::assertRegExp('(10202.*)', $ret['std']);
+        self::assertRegExp('(10203.*)', $ret['std']);
+    }
 
-    public function testStandardInput()
+    public function testStandardInput(): void
     {
         $ret = $this->execute('echo -n "Share my secret" | '.$this->cmd.' shamir:share');
         self::assertEquals(0, $ret['ret']);
