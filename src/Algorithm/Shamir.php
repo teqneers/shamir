@@ -3,6 +3,7 @@
 namespace TQ\Shamir\Algorithm;
 
 use OutOfRangeException;
+use RuntimeException;
 use TQ\Shamir\Random\Generator;
 use TQ\Shamir\Random\PhpGenerator;
 
@@ -125,7 +126,7 @@ class Shamir implements Algorithm, RandomGeneratorAware
         $primeNumber = [1 => 257, 65537, 16777259, 4294967311, 1099511627791, 281474976710677, 72057594037928017];
 
         if (!isset($primeNumber[$chunkSize])) {
-            throw new \OutOfRangeException(
+            throw new OutOfRangeException(
                 'Chunk size with '.$chunkSize.' bytes is not allowed. Use 1 to '.count($primeNumber).'.'
             );
         }
@@ -149,7 +150,7 @@ class Shamir implements Algorithm, RandomGeneratorAware
      * @see    setChunkSize()
      * @param  int  $max  Maximum number of keys needed
      * @return Shamir
-     * @throws \OutOfRangeException
+     * @throws OutOfRangeException
      */
     protected function setMaxShares($max): Shamir
     {
@@ -242,7 +243,7 @@ class Shamir implements Algorithm, RandomGeneratorAware
      * @param  array  $keyX
      * @param  int    $threshold
      * @return array
-     * @throws \RuntimeException
+     * @throws RuntimeException
      */
     protected function reverseCoefficients(array $keyX, $threshold): array
     {
@@ -260,7 +261,7 @@ class Shamir implements Algorithm, RandomGeneratorAware
 
             if ($temp == 0) {
                 /* Repeated share */
-                throw new \RuntimeException('Repeated share detected - cannot compute reverse-coefficients');
+                throw new RuntimeException('Repeated share detected - cannot compute reverse-coefficients');
             }
 
             $coefficients[] = $temp;
@@ -442,15 +443,15 @@ class Shamir implements Algorithm, RandomGeneratorAware
 
         // check if number of shares is less than our prime, otherwise we have a security problem
         if ($shares >= $this->prime || $shares < 1) {
-            throw new \OutOfRangeException('Number of shares has to be between 1 and '.$this->prime.'.');
+            throw new OutOfRangeException('Number of shares has to be between 1 and '.$this->prime.'.');
         }
 
         if ($shares < $threshold) {
-            throw new \OutOfRangeException('Threshold has to be between 1 and '.$shares.'.');
+            throw new OutOfRangeException('Threshold has to be between 1 and '.$shares.'.');
         }
 
         if (strpos(self::CHARS, self::PAD_CHAR) !== false) {
-            throw new \OutOfRangeException('Padding character must not be part of possible encryption chars.');
+            throw new OutOfRangeException('Padding character must not be part of possible encryption chars.');
         }
 
         // divide secret into chunks, which we encrypt one by one
@@ -535,7 +536,7 @@ class Shamir implements Algorithm, RandomGeneratorAware
     public function recover(array $keys): string
     {
         if (!count($keys)) {
-            throw new \RuntimeException('No keys given.');
+            throw new RuntimeException('No keys given.');
         }
 
         $keyX      = [];
@@ -567,17 +568,17 @@ class Shamir implements Algorithm, RandomGeneratorAware
                 $threshold = $keyThreshold;
 
                 if ($threshold > count($keys)) {
-                    throw new \RuntimeException('Not enough keys to disclose secret.');
+                    throw new RuntimeException('Not enough keys to disclose secret.');
                 }
             } elseif ($threshold != $keyThreshold || $bytes != hexdec($keyBytes)) {
-                throw new \RuntimeException('Given keys are incompatible.');
+                throw new RuntimeException('Given keys are incompatible.');
             }
 
             $keyX[] = $keySequence;
             if ($keyLen === null) {
                 $keyLen = strlen($key);
             } elseif ($keyLen !== strlen($key)) {
-                throw new \RuntimeException('Given keys vary in key length.');
+                throw new RuntimeException('Given keys vary in key length.');
             }
             for ($i = 0; $i < $keyLen; $i += $maxBaseLength) {
                 $keyY[] = self::convBase(substr($key, $i, $maxBaseLength), self::CHARS, self::DECIMAL);

@@ -7,3 +7,7 @@ vendor/
 
 phpunit
 phpunit.xml
+
+infection.json
+infection*.log
+infection-log.json

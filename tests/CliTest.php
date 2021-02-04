@@ -106,7 +106,7 @@ class CliTest extends TestCase
         $ret = $this->execute($cmd);
 
         self::assertEquals(0, $ret['ret']);
-        self::assertMatchesRegularExpression('('.$regexp.')', $ret['std']);
+        self::assertRegExp('('.$regexp.')', $ret['std']);
         self::assertSame('', $ret['err']);
     }
 
@@ -116,7 +116,7 @@ class CliTest extends TestCase
 
         self::assertEquals(1, $ret['ret']);
         self::assertSame('', $ret['std']);
-        self::assertMatchesRegularExpression('(.*Command "quatsch" is not defined..*)', $ret['err']);
+        self::assertRegExp('(.*Command "quatsch" is not defined..*)', $ret['err']);
     }
 
     public function testUsageQuiet()
@@ -133,24 +133,24 @@ class CliTest extends TestCase
         $ret = $this->execute($this->cmd.' -V');
 
         self::assertEquals(0, $ret['ret']);
-        self::assertMatchesRegularExpression('(Shamir\'s Shared Secret CLI.*)', $ret['std']);
+        self::assertRegExp('(Shamir\'s Shared Secret CLI.*)', $ret['std']);
     }
 
 //    public function testFileInput()
 //    {
 //        $ret = $this->execute($this->cmd.' shamir:share -f tests/secret.txt');
 //        self::assertEquals(0, $ret['ret']);
-//        self::assertMatchesRegularExpression('(10201.*)', $ret['std']);
-//        self::assertMatchesRegularExpression('(10202.*)', $ret['std']);
-//        self::assertMatchesRegularExpression('(10203.*)', $ret['std']);
+//        self::assertRegExp('(10201.*)', $ret['std']);
+//        self::assertRegExp('(10202.*)', $ret['std']);
+//        self::assertRegExp('(10203.*)', $ret['std']);
 //    }
 
     public function testStandardInput()
     {
         $ret = $this->execute('echo -n "Share my secret" | '.$this->cmd.' shamir:share');
         self::assertEquals(0, $ret['ret']);
-        self::assertMatchesRegularExpression('(10201.*)', $ret['std']);
-        self::assertMatchesRegularExpression('(10202.*)', $ret['std']);
-        self::assertMatchesRegularExpression('(10203.*)', $ret['std']);
+        self::assertRegExp('(10201.*)', $ret['std']);
+        self::assertRegExp('(10202.*)', $ret['std']);
+        self::assertRegExp('(10203.*)', $ret['std']);
     }
 }
