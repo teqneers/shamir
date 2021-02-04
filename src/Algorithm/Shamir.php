@@ -120,9 +120,8 @@ class Shamir implements Algorithm, RandomGeneratorAware
      * @return Shamir
      * @throws OutOfRangeException
      */
-    public function setChunkSize($chunkSize): Shamir
+    public function setChunkSize(int $chunkSize): Shamir
     {
-        $chunkSize   = (int)$chunkSize;
         $primeNumber = [1 => 257, 65537, 16777259, 4294967311, 1099511627791, 281474976710677, 72057594037928017];
 
         if (!isset($primeNumber[$chunkSize])) {
@@ -152,7 +151,7 @@ class Shamir implements Algorithm, RandomGeneratorAware
      * @return Shamir
      * @throws OutOfRangeException
      */
-    protected function setMaxShares($max): Shamir
+    protected function setMaxShares(int $max): Shamir
     {
         // the prime number has to be larger, than the maximum number
         // representable by the number of bytes. so we always need one
@@ -192,10 +191,10 @@ class Shamir implements Algorithm, RandomGeneratorAware
     /**
      * Calculate modulo of any given number using prime
      *
-     * @param  int     Number
+     * @param  string     Number
      * @return int     Module of number
      */
-    protected function modulo($number)
+    protected function modulo(string $number): int
     {
         $modulo = bcmod($number, $this->prime);
 
@@ -205,13 +204,13 @@ class Shamir implements Algorithm, RandomGeneratorAware
     /**
      * Returns decomposition of the greatest common divisor of a and b
      *
-     * @param  int  $a
-     * @param  int  $b
+     * @param  int     $a
+     * @param  string  $b
      * @return array
      */
-    protected function gcdD($a, $b): array
+    protected function gcdD(int $a, string $b): array
     {
-        if ($b == 0) {
+        if ($b === '0') {
             return [$a, 1, 0];
         }
 
@@ -226,13 +225,13 @@ class Shamir implements Algorithm, RandomGeneratorAware
      * Calculates the inverse modulo
      *
      * @param  int  $number
-     * @return int
+     * @return string
      */
-    protected function inverseModulo($number)
+    protected function inverseModulo(int $number): string
     {
-        $number = bcmod($number, $this->prime);
-        $r      = $this->gcdD($this->prime, abs($number));
-        $r      = ($number < 0) ? -$r[2] : $r[2];
+        $mod = bcmod($number, $this->prime);
+        $r   = $this->gcdD($this->prime, abs($mod));
+        $r   = ($mod < 0) ? -$r[2] : $r[2];
 
         return bcmod(bcadd($this->prime, $r), $this->prime);
     }
@@ -245,21 +244,21 @@ class Shamir implements Algorithm, RandomGeneratorAware
      * @return array
      * @throws RuntimeException
      */
-    protected function reverseCoefficients(array $keyX, $threshold): array
+    protected function reverseCoefficients(array $keyX, int $threshold): array
     {
         $coefficients = [];
 
         for ($i = 0; $i < $threshold; $i++) {
             $temp = 1;
             for ($j = 0; $j < $threshold; $j++) {
-                if ($i != $j) {
+                if ($i !== $j) {
                     $temp = $this->modulo(
                         bcmul(bcmul(-$temp, $keyX[$j]), $this->inverseModulo($keyX[$i] - $keyX[$j]))
                     );
                 }
             }
 
-            if ($temp == 0) {
+            if ($temp === 0) {
                 /* Repeated share */
                 throw new RuntimeException('Repeated share detected - cannot compute reverse-coefficients');
             }
@@ -277,7 +276,7 @@ class Shamir implements Algorithm, RandomGeneratorAware
      *
      * @return array
      */
-    protected function generateCoefficients($threshold): array
+    protected function generateCoefficients(int $threshold): array
     {
         $coefficients = [];
         for ($i = 0; $i < $threshold - 1; $i++) {
@@ -304,7 +303,7 @@ class Shamir implements Algorithm, RandomGeneratorAware
      * @param  array  $coefficients  Polynomial coefficients
      * @return int                   Y coordinate
      */
-    protected function hornerMethod($xCoordinate, array $coefficients)
+    protected function hornerMethod(int $xCoordinate, array $coefficients): int
     {
         $yCoordinate = 0;
         foreach ($coefficients as $coefficient) {
@@ -322,9 +321,9 @@ class Shamir implements Algorithm, RandomGeneratorAware
      * @param  string  $toBaseInput
      * @return string
      */
-    protected static function convBase($numberInput, $fromBaseInput, $toBaseInput)
+    protected static function convBase(string $numberInput, string $fromBaseInput, string $toBaseInput): string
     {
-        if ($fromBaseInput == $toBaseInput) {
+        if ($fromBaseInput === $toBaseInput) {
             return $numberInput;
         }
         $fromBase  = str_split($fromBaseInput, 1);
@@ -334,7 +333,7 @@ class Shamir implements Algorithm, RandomGeneratorAware
         $toLen     = strlen($toBaseInput);
         $numberLen = strlen($numberInput);
         $retVal    = '';
-        if ($toBaseInput == '0123456789') {
+        if ($toBaseInput === '0123456789') {
             $retVal = 0;
             for ($i = 1; $i <= $numberLen; $i++) {
                 $retVal = bcadd(
@@ -345,7 +344,7 @@ class Shamir implements Algorithm, RandomGeneratorAware
 
             return $retVal;
         }
-        if ($fromBaseInput != '0123456789') {
+        if ($fromBaseInput !== '0123456789') {
             $base10 = self::convBase($numberInput, $fromBaseInput, '0123456789');
         } else {
             $base10 = $numberInput;
@@ -353,7 +352,7 @@ class Shamir implements Algorithm, RandomGeneratorAware
         if ($base10 < strlen($toBaseInput)) {
             return $toBase[$base10];
         }
-        while ($base10 != '0') {
+        while ($base10 !== '0') {
             $retVal = $toBase[bcmod($base10, $toLen)].$retVal;
             $base10 = bcdiv($base10, $toLen, 0);
         }
@@ -369,7 +368,7 @@ class Shamir implements Algorithm, RandomGeneratorAware
      * @param  string  $string  Binary string
      * @return array            Array with decimal converted numbers
      */
-    protected function unpack($string): array
+    protected function unpack(string $string): array
     {
         $chunk  = 0;
         $int    = null;
@@ -399,7 +398,7 @@ class Shamir implements Algorithm, RandomGeneratorAware
      * @param  int  $bytes  Bytes used to represent a string
      * @return int          Number of chars
      */
-    protected function maxKeyLength($bytes): int
+    protected function maxKeyLength(int $bytes): int
     {
         $maxInt    = bcpow(2, $bytes * 8);
         $converted = self::convBase($maxInt, self::DECIMAL, self::CHARS);
@@ -415,7 +414,7 @@ class Shamir implements Algorithm, RandomGeneratorAware
      * @param  int     $threshold  Minimum number of shares required for decryption
      * @return array
      */
-    protected function divideSecret($secret, $shares, $threshold): array
+    protected function divideSecret(string $secret, int $shares, int $threshold): array
     {
         // divide secret into chunks, which we encrypt one by one
         $result = [];
@@ -507,7 +506,7 @@ class Shamir implements Algorithm, RandomGeneratorAware
      * @param  int    $threshold  Minimum number of shares required for decryption
      * @return string
      */
-    protected function joinSecret($keyX, $keyY, $bytes, $keyLen, $threshold): string
+    protected function joinSecret(array $keyX, array $keyY, int $bytes, int $keyLen, int $threshold): string
     {
         $coefficients = $this->reverseCoefficients($keyX, $threshold);
 
@@ -570,7 +569,7 @@ class Shamir implements Algorithm, RandomGeneratorAware
                 if ($threshold > count($keys)) {
                     throw new RuntimeException('Not enough keys to disclose secret.');
                 }
-            } elseif ($threshold != $keyThreshold || $bytes != hexdec($keyBytes)) {
+            } elseif ($threshold !== $keyThreshold || $bytes != hexdec($keyBytes)) {
                 throw new RuntimeException('Given keys are incompatible.');
             }
 

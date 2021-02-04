@@ -52,7 +52,6 @@ class RandomTest extends TestCase
     public function provideRandomInput()
     {
         return [
-            [PHP_INT_MAX, 'string', 'OutOfRangeException'],
             [PHP_INT_MAX, 0, 'OutOfRangeException'],
             [PHP_INT_MAX, 0.5, 'OutOfRangeException'],
             [1, 5, 'Error'],
@@ -116,7 +115,6 @@ class RandomTest extends TestCase
     public function provideOpenSslBytes()
     {
         return [
-            ['string'],
             [0],
             [0.5],
         ];

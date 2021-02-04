@@ -22,7 +22,7 @@ interface Algorithm
      * @return  array               Secret shares
      * @throws OutOfRangeException
      */
-    public function share($secret, $shares, $threshold = 2): array;
+    public function share(string $secret, int $shares, int $threshold = 2): array;
 
     /**
      * Recovers the secret from the given shared keys

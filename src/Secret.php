@@ -2,6 +2,7 @@
 
 namespace TQ\Shamir;
 
+use OutOfBoundsException;
 use TQ\Shamir\Algorithm\Algorithm;
 use TQ\Shamir\Algorithm\RandomGeneratorAware;
 use TQ\Shamir\Algorithm\Shamir;
@@ -116,9 +117,9 @@ class Secret
      * @param  int     $threshold  Minimum number of shares required for decryption
      *
      * @return  array              Secret shares
-     * @throws  \OutOfBoundsException
+     * @throws  OutOfBoundsException
      */
-    public static function share($secret, $shares, $threshold = 2): array
+    public static function share(string $secret, int $shares, int $threshold = 2): array
     {
         return self::getAlgorithm()->share($secret, $shares, $threshold);
     }

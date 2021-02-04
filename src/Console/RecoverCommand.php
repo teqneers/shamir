@@ -28,7 +28,7 @@ class RecoverCommand extends Command
     /**
      * @inheritdoc
      */
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         /** @var array $shares */
         $shares = $input->getArgument('shares');

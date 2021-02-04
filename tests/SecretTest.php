@@ -298,7 +298,6 @@ class SecretTest extends TestCase
     public function provideChunkSize()
     {
         return [
-            ['string'],
             [0],
             [8],
             [99],

@@ -2,6 +2,7 @@
 
 namespace TQ\Shamir\Random;
 
+use OutOfRangeException;
 use RuntimeException;
 
 /**
@@ -33,14 +34,14 @@ class OpenSslGenerator implements Generator
      * @param  int   $bytes        Bytes to use in result
      * @param  bool  $forceStrong  Force strong random number generation
      */
-    public function __construct($bytes = PHP_INT_SIZE, $forceStrong = true)
+    public function __construct(int $bytes = PHP_INT_SIZE, bool $forceStrong = true)
     {
-        if((int)$bytes < 1) {
-            throw new \OutOfRangeException('The length of the desired string of bytes. Must be a positive integer.');
+        if($bytes < 1) {
+            throw new OutOfRangeException('The length of the desired string of bytes. Must be a positive integer.');
         }
 
-        $this->bytes       = (int)$bytes;
-        $this->forceStrong = (bool)$forceStrong;
+        $this->bytes       = $bytes;
+        $this->forceStrong = $forceStrong;
     }
 
     /**
