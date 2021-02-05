@@ -11,3 +11,4 @@ phpunit.xml
 infection.json
 infection*.log
 infection-log.json
+infection-per-mutator.md
