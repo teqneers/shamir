@@ -9,7 +9,8 @@ jobs:
     test:
         runs-on: ubuntu-latest
         strategy:
-            max-parallel: 4
+            max-parallel: 2
+            fail-fast: false
             matrix:
                 php-version: [
                         "7.2",
