@@ -22,7 +22,7 @@ class RandomTest extends TestCase
         self::$max = 1 << (self::$byte * 8);
     }
 
-    protected function checkRandom($list)
+    protected function checkRandom($list): void
     {
         // this test is NOT used to test quality of randomization in general,
         // but rather, if the randomizers have been initialized correctly
@@ -49,7 +49,7 @@ class RandomTest extends TestCase
         );
     }
 
-    public function provideRandomInput()
+    public function provideRandomInput(): array
     {
         return [
             [PHP_INT_MAX, 0, 'OutOfRangeException'],
@@ -61,14 +61,14 @@ class RandomTest extends TestCase
     /**
      * @dataProvider provideRandomInput
      */
-    public function testPhpGeneratorInputException($max, $min, $exception)
+    public function testPhpGeneratorInputException($max, $min, $exception): void
     {
         $this->expectException($exception);
         $generator = new PhpGenerator($max, $min);
         $generator->getRandomInt();
     }
 
-    public function testPhpGeneratorSequence()
+    public function testPhpGeneratorSequence(): void
     {
         $random = new PhpGenerator(self::$max, self::$min);
         $i      = self::$num;
@@ -84,7 +84,7 @@ class RandomTest extends TestCase
         $this->checkRandom($list);
     }
 
-    public function testPhpGeneratorInit()
+    public function testPhpGeneratorInit(): void
     {
         $i    = self::$num;
         $list = [];
@@ -100,7 +100,7 @@ class RandomTest extends TestCase
         $this->checkRandom($list);
     }
 
-    public function testOpenSslGeneratorInput()
+    public function testOpenSslGeneratorInput(): void
     {
         if (!function_exists('openssl_random_pseudo_bytes')) {
             self::markTestSkipped('OpenSSL not compiled into PHP.');
@@ -112,7 +112,7 @@ class RandomTest extends TestCase
         self::assertTrue($random->isForceStrong());
     }
 
-    public function provideOpenSslBytes()
+    public function provideOpenSslBytes(): array
     {
         return [
             [0],
@@ -123,7 +123,7 @@ class RandomTest extends TestCase
     /**
      * @dataProvider provideOpenSslBytes
      */
-    public function testOpenSslGeneratorInputException($bytes)
+    public function testOpenSslGeneratorInputException($bytes): void
     {
         if (!function_exists('openssl_random_pseudo_bytes')) {
             self::markTestSkipped('OpenSSL not compiled into PHP.');
@@ -133,7 +133,7 @@ class RandomTest extends TestCase
         new OpenSslGenerator($bytes);
     }
 
-    public function testOpenSslGeneratorSequence()
+    public function testOpenSslGeneratorSequence(): void
     {
         if (!function_exists('openssl_random_pseudo_bytes')) {
             self::markTestSkipped('OpenSSL not compiled into PHP.');
@@ -153,7 +153,7 @@ class RandomTest extends TestCase
         $this->checkRandom($list);
     }
 
-    public function testOpenSslGeneratorInit()
+    public function testOpenSslGeneratorInit(): void
     {
         if (!function_exists('openssl_random_pseudo_bytes')) {
             self::markTestSkipped('OpenSSL not compiled into PHP.');

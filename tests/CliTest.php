@@ -3,6 +3,7 @@
 namespace TQ\Shamir\Tests;
 
 use PHPUnit\Framework\TestCase;
+use ReflectionClass;
 
 class CliTest extends TestCase
 {
@@ -31,7 +32,7 @@ class CliTest extends TestCase
      */
     public function invokeMethod($object, $methodName, array $parameters = [])
     {
-        $reflection = new \ReflectionClass(get_class($object));
+        $reflection = new ReflectionClass(get_class($object));
         $method     = $reflection->getMethod($methodName);
         $method->setAccessible(true);
 
@@ -49,7 +50,7 @@ class CliTest extends TestCase
      */
     public function invokeStaticMethod($class, $methodName, array $parameters = [])
     {
-        $reflection = new \ReflectionClass($class);
+        $reflection = new ReflectionClass($class);
         $method     = $reflection->getMethod($methodName);
         $method->setAccessible(true);
 

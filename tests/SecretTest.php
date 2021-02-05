@@ -66,7 +66,7 @@ class SecretTest extends TestCase
         Secret::setAlgorithm(null);
     }
 
-    public function provideConvertBase()
+    public function provideConvertBase(): array
     {
         return [
             # dec -> dec
@@ -105,7 +105,7 @@ class SecretTest extends TestCase
     /**
      * @dataProvider provideConvertBase
      */
-    public function testConvBase($numberInput, $fromBaseInput, $toBaseInput, $expected)
+    public function testConvBase($numberInput, $fromBaseInput, $toBaseInput, $expected): void
     {
         $returnVal = $this->invokeStaticMethod(
             Shamir::class,
@@ -115,17 +115,17 @@ class SecretTest extends TestCase
         self::assertEquals($expected, $returnVal);
     }
 
-    public function testReturnsDefaultAlgorithm()
+    public function testReturnsDefaultAlgorithm(): void
     {
         self::assertInstanceOf(Algorithm::class, Secret::getAlgorithm());
     }
 
-    public function testReturnsDefaultRandomGenerator()
+    public function testReturnsDefaultRandomGenerator(): void
     {
         self::assertInstanceOf(Generator::class, Secret::getRandomGenerator());
     }
 
-    public function testSetNewAlgorithmReturnsOld()
+    public function testSetNewAlgorithmReturnsOld(): void
     {
         $current = Secret::getAlgorithm();
         /** @var MockBuilder|Algorithm $new */
@@ -138,7 +138,7 @@ class SecretTest extends TestCase
         self::assertNull(Secret::setAlgorithm($new, false));
     }
 
-    public function testSetNewRandomGeneratorReturnsOld()
+    public function testSetNewRandomGeneratorReturnsOld(): void
     {
         $current = Secret::getRandomGenerator();
         /** @var MockBuilder|Generator $new */
@@ -148,7 +148,7 @@ class SecretTest extends TestCase
         self::assertSame($new, Secret::getRandomGenerator());
     }
 
-    public function testSetNewRandomGeneratorUpdatesGeneratorOnAlgorithm()
+    public function testSetNewRandomGeneratorUpdatesGeneratorOnAlgorithm(): void
     {
         /** @var MockBuilder|Generator $new */
         $new = $this->getMockBuilder(Generator::class)->onlyMethods(['getRandomInt'])->getMock();
@@ -161,7 +161,7 @@ class SecretTest extends TestCase
         self::assertSame($new, $algorithm->getRandomGenerator());
     }
 
-    public function provideShareAndRecoverMultipleBytes()
+    public function provideShareAndRecoverMultipleBytes(): array
     {
         if (empty($this->secretAscii)) {
             // generate string with all ASCII chars
@@ -187,7 +187,7 @@ class SecretTest extends TestCase
     /**
      * @dataProvider provideShareAndRecoverMultipleBytes
      */
-    public function testShareAndRecoverMultipleBytes($secret, $bytes)
+    public function testShareAndRecoverMultipleBytes($secret, $bytes): void
     {
         $shamir = new Shamir();
         $shamir->setChunkSize($bytes);
@@ -201,7 +201,7 @@ class SecretTest extends TestCase
         self::assertSame($secret, $recover);
     }
 
-    public function testShareAndRecoverShuffleKeys()
+    public function testShareAndRecoverShuffleKeys(): void
     {
         $secret = 'abc ABC 123 !@# ,./ \'"\\ <>?';
 
@@ -216,7 +216,7 @@ class SecretTest extends TestCase
         }
     }
 
-    public function testShareAndRecoverOneByte()
+    public function testShareAndRecoverOneByte(): void
     {
         $secret = 'abc ABC 123 !@# ,./ \'"\\ <>?';
 
@@ -245,7 +245,7 @@ class SecretTest extends TestCase
         }
     }
 
-    public function testShareAndRecoverTwoBytes()
+    public function testShareAndRecoverTwoBytes(): void
     {
         $secret = 'abc ABC 123 !@# ,./ \'"\\ <>?';
 
@@ -274,7 +274,7 @@ class SecretTest extends TestCase
         }
     }
 
-    public function testShareAndRecoverThreeBytes()
+    public function testShareAndRecoverThreeBytes(): void
     {
         $secret = 'abc ABC 123 !@# ,./ \'"\\ <>?';
 
@@ -287,7 +287,7 @@ class SecretTest extends TestCase
     /**
      * @dataProvider provideShareAndRecoverMultipleBytes
      */
-    public function testChunkSizeGetter($secret, $bytes)
+    public function testChunkSizeGetter($secret, $bytes): void
     {
         $shamir = new Shamir();
         $shamir->setChunkSize($bytes);
@@ -295,7 +295,7 @@ class SecretTest extends TestCase
         self::assertSame($shamir->getChunkSize(), $bytes);
     }
 
-    public function provideChunkSize()
+    public function provideChunkSize(): array
     {
         return [
             [0],
@@ -308,7 +308,7 @@ class SecretTest extends TestCase
     /**
      * @dataProvider provideChunkSize
      */
-    public function testOpenSslGeneratorInputExceptions($chunkSize)
+    public function testOpenSslGeneratorInputExceptions($chunkSize): void
     {
         $this->expectException(OutOfRangeException::class);
 
@@ -316,7 +316,7 @@ class SecretTest extends TestCase
         $shamir->setChunkSize($chunkSize);
     }
 
-    public function testShareAndShareSmallerThreshold()
+    public function testShareAndShareSmallerThreshold(): void
     {
         $this->expectException(OutOfRangeException::class);
 
