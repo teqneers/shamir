@@ -18,8 +18,8 @@ jobs:
                         "8.1"
                 ]
                 composer-param: [
-                        "update --no-progress --no-suggest --prefer-source --prefer-lowest",
-                        "update --no-progress --no-suggest --prefer-source"
+                        "update --no-progress --prefer-source --prefer-lowest",
+                        "update --no-progress --prefer-source"
                 ]
         name: PHP ${{ matrix.php-version }} test
         steps:
@@ -32,6 +32,7 @@ jobs:
                     php-version: ${{ matrix.php-version }}
                     extensions: bcmath
                     tools: composer:v2
+                    # For PHPUnit code coverage, we need xdebug
                     coverage: xdebug
 
             -   name: Validate composer.json and composer.lock
