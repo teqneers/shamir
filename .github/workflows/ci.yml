@@ -62,5 +62,5 @@ jobs:
                 run: wget https://scrutinizer-ci.com/ocular.phar
 
             # Uploading reports for analysis
-            -   name: PHPUnit Tests
+            -   name: Upload code-coverage to scrutinizer
                 run: php ocular.phar code-coverage:upload --format=php-clover coverage.clover
