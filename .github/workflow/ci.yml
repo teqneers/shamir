@@ -1,0 +1,37 @@
+name: CI
+on: [ push ]
+jobs:
+    test:
+        runs-on: ubuntu-latest
+        strategy:
+            matrix:
+                php-version: [
+                        "7.2",
+                        "7.3",
+                        "7.4",
+                        "8.0",
+                        "8.1"
+                ]
+                composer-param: [
+                        "update --prefer-source --prefer-lowest",
+                        "update --prefer-source"
+                ]
+        name: PHP ${{ matrix.php-version }} test
+        steps:
+            -   name: checkout project
+                uses: actions/checkout@v2
+            -   name: Setup PHP
+                uses: shivammathur/setup-php@v2
+                with:
+                    php-version: ${{ matrix.php-version }}
+                    extensions: bcmath
+                    tools: composer:v2
+                    coverage: xdebug
+            -   name: composer install missing files
+                run: composer ${{ matrix.composer-param }}
+            -   name: PHPUnit Tests
+                uses: vendor/bin/phpunit
+                with:
+                    bootstrap: vendor/autoload.php
+                    configuration: phpunit.xml
+                    args: --coverage-clover=coverage.clover
