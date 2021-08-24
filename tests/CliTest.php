@@ -3,7 +3,6 @@
 namespace TQ\Shamir\Tests;
 
 use PHPUnit\Framework\TestCase;
-use ReflectionClass;
 
 class CliTest extends TestCase
 {
@@ -19,42 +18,6 @@ class CliTest extends TestCase
     {
         parent::__construct($name, $data, $dataName);
         $this->cmd = __DIR__.'/../bin/shamir.php';
-    }
-
-    /**
-     * Call protected/private method of a class.
-     *
-     * @param  object  $object      Instantiated object that we will run method on.
-     * @param  string  $methodName  Method name to call
-     * @param  array   $parameters  Array of parameters to pass into method.
-     *
-     * @return mixed Method return.
-     */
-    public function invokeMethod($object, $methodName, array $parameters = [])
-    {
-        $reflection = new ReflectionClass(get_class($object));
-        $method     = $reflection->getMethod($methodName);
-        $method->setAccessible(true);
-
-        return $method->invokeArgs($object, $parameters);
-    }
-
-    /**
-     * Call protected/private static method of a class.
-     *
-     * @param  string  $class       Name of the class
-     * @param  string  $methodName  Static method name to call
-     * @param  array   $parameters  Array of parameters to pass into method.
-     *
-     * @return mixed Method return.
-     */
-    public function invokeStaticMethod($class, $methodName, array $parameters = [])
-    {
-        $reflection = new ReflectionClass($class);
-        $method     = $reflection->getMethod($methodName);
-        $method->setAccessible(true);
-
-        return $method->invokeArgs(null, $parameters);
     }
 
     protected function setUp(): void
@@ -107,7 +70,7 @@ class CliTest extends TestCase
         $ret = $this->execute($cmd);
 
         self::assertEquals(0, $ret['ret']);
-        self::assertRegExp('('.$regexp.')', $ret['std']);
+        self::assertMatchesRegularExpression('('.$regexp.')', $ret['std']);
         self::assertSame('', $ret['err']);
     }
 
@@ -117,7 +80,7 @@ class CliTest extends TestCase
 
         self::assertEquals(1, $ret['ret']);
         self::assertSame('', $ret['std']);
-        self::assertRegExp('(.*Command "quatsch" is not defined..*)', $ret['err']);
+        self::assertMatchesRegularExpression('(.*Command "quatsch" is not defined..*)', $ret['err']);
     }
 
     public function testUsageQuiet(): void
@@ -134,24 +97,24 @@ class CliTest extends TestCase
         $ret = $this->execute($this->cmd.' -V');
 
         self::assertEquals(0, $ret['ret']);
-        self::assertRegExp('(Shamir\'s Shared Secret CLI.*)', $ret['std']);
+        self::assertMatchesRegularExpression('(Shamir\'s Shared Secret CLI.*)', $ret['std']);
     }
 
     public function testFileInput(): void
     {
-        $ret = $this->execute($this->cmd.' shamir:share -f tests/secret.txt');
+        $ret = $this->execute($this->cmd.' shamir:share -f ' . __DIR__ . '/secret.txt');
         self::assertEquals(0, $ret['ret']);
-        self::assertRegExp('(10201.*)', $ret['std']);
-        self::assertRegExp('(10202.*)', $ret['std']);
-        self::assertRegExp('(10203.*)', $ret['std']);
+        self::assertMatchesRegularExpression('(10201.*)', $ret['std']);
+        self::assertMatchesRegularExpression('(10202.*)', $ret['std']);
+        self::assertMatchesRegularExpression('(10203.*)', $ret['std']);
     }
 
     public function testStandardInput(): void
     {
         $ret = $this->execute('echo -n "Share my secret" | '.$this->cmd.' shamir:share');
         self::assertEquals(0, $ret['ret']);
-        self::assertRegExp('(10201.*)', $ret['std']);
-        self::assertRegExp('(10202.*)', $ret['std']);
-        self::assertRegExp('(10203.*)', $ret['std']);
+        self::assertMatchesRegularExpression('(10201.*)', $ret['std']);
+        self::assertMatchesRegularExpression('(10202.*)', $ret['std']);
+        self::assertMatchesRegularExpression('(10203.*)', $ret['std']);
     }
 }

@@ -7,6 +7,7 @@ vendor/
 
 phpunit
 phpunit.xml
+.phpunit.result.cache
 
 infection.json
 infection*.log

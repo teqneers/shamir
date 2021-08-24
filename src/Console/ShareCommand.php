@@ -26,28 +26,34 @@ class ShareCommand extends Command
      */
     protected function configure(): void
     {
-        $this->setName('shamir:share')->setDescription('Create a shared secret')->addArgument(
-            'secret',
-            InputArgument::OPTIONAL,
-            'The secret to share'
-        )->addOption(
-            'file',
-            'f',
-            InputOption::VALUE_OPTIONAL,
-            'File containing secret'
-        )->addOption(
-            'shares',
-            's',
-            InputOption::VALUE_OPTIONAL,
-            'The number of shared secrets to generate',
-            3
-        )->addOption(
-            'threshold',
-            't',
-            InputOption::VALUE_OPTIONAL,
-            'The minimum number of shared secrets required to recover',
-            2
-        );
+        $this->setName('shamir:share')
+            ->setDescription('Create a shared secret')
+            ->addArgument(
+                'secret',
+                InputArgument::OPTIONAL,
+                'The secret to share',
+            )
+            ->addOption(
+                'file',
+                'f',
+                InputOption::VALUE_REQUIRED,
+                'File containing secret',
+            )
+            ->addOption(
+                'shares',
+                's',
+                InputOption::VALUE_REQUIRED,
+                'The number of shared secrets to generate',
+                3,
+            )
+            ->addOption(
+                'threshold',
+                't',
+                InputOption::VALUE_REQUIRED,
+                'The minimum number of shared secrets required to recover',
+                2,
+            )
+        ;
     }
 
     /**
@@ -55,10 +61,10 @@ class ShareCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $secret = $this->readFile($input, $output);
-
-        if ($secret === null) {
+        if (is_null($input->getOption('file'))) {
             $secret = $input->getArgument('secret');
+        } else {
+            $secret = $this->readFile($input->getOption('file'));
         }
 
         if (empty($secret)) {
@@ -110,41 +116,12 @@ class ShareCommand extends Command
         return 0;
     }
 
-    /**
-     * Check STDIN or file option for input of secret
-     *
-     * @param  InputInterface   $input
-     * @param  OutputInterface  $output
-     * @return string|null
-     */
-    protected function readFile(InputInterface $input, OutputInterface $output): ?string
+    protected function readFile(string $file): string
     {
-        $secret = null;
-
-        # check if data is given by STDIN
-        $readStreams   = [STDIN];
-        $writeStreams  = [];
-        $exceptStreams = [];
-        $streamCount   = stream_select($readStreams, $writeStreams, $exceptStreams, 0);
-
-        if ($streamCount === 1) {
-            while (!feof(STDIN)) {
-                $secret .= fread(STDIN, 1024);
-            }
-        } else {
-            $file = $input->getOption('file');
-
-            if ($file !== null) {
-                # check for secret in file
-                if (!is_readable($file)) {
-                    $output->writeln('<error>ERROR: file "'.$file.'" is not readable.');
-                    exit(1);
-                }
-
-                $secret = file_get_contents($file);
-            }
+        if (!is_file($file) || !is_readable($file)) {
+            throw new \Exception('The file "'.$file.'" is not readable.');
         }
 
-        return $secret;
+        return file_get_contents($file);
     }
 }
