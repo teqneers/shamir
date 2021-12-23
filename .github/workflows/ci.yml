@@ -13,8 +13,6 @@ jobs:
             fail-fast: false
             matrix:
                 php-version: [
-                        "7.2",
-                        "7.3",
                         "7.4",
                         "8.0",
                         "8.1"
@@ -40,14 +38,24 @@ jobs:
             -   name: Validate composer.json and composer.lock
                 run: composer validate
 
-#            -   name: Cache Composer packages
-#                id: composer-cache
-#                uses: actions/cache@v2
-#                with:
-#                    path: vendor
-#                    key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
-#                    restore-keys: |
-#                        ${{ runner.os }}-php-
+            -   name: Get Composer Cache Directory
+                id: composer-cache
+                run: |
+                  echo "::set-output name=dir::$(composer config cache-files-dir)"
+
+            -   name: Cache Composer Downloads
+                uses: actions/cache@v2.1.6
+                with:
+                    path: ${{ steps.composer-cache.outputs.dir }}
+                    key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+                    restore-keys: |
+                        ${{ runner.os }}-composer-
+
+            -   name: Cache PHP dependencies
+                uses: actions/cache@v2.1.6
+                with:
+                    path: vendor
+                    key: ${{ runner.OS }}-build-${{ hashFiles('**/composer.lock') }}
 
             -   name: Install dependencies
 #                if: steps.composer-cache.outputs.cache-hit != 'true'
@@ -55,12 +63,4 @@ jobs:
 
             # Run phpunit with code coverage
             -   name: PHPUnit Tests
-                run: vendor/bin/phpunit --coverage-clover=coverage.clover
-
-            # For code coverage report we are uploading our code coverage report to scrutinizer
-            -   name: Downloading scrutinizer ocular.phar
-                run: wget https://scrutinizer-ci.com/ocular.phar
-
-            # Uploading reports for analysis
-            -   name: Upload code-coverage to scrutinizer
-                run: php ocular.phar code-coverage:upload --format=php-clover coverage.clover
+                run: vendor/bin/phpunit
