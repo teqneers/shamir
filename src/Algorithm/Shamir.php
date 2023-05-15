@@ -371,14 +371,14 @@ class Shamir implements Algorithm, RandomGeneratorAware
     protected function unpack(string $string): array
     {
         $chunk  = 0;
-        $int    = null;
+        $int    = '';
         $return = [];
         foreach (unpack('C*', $string) as $byte) {
             $int = bcadd($int, bcmul($byte, bcpow(2, $chunk * 8)));
             if (++$chunk === $this->chunkSize) {
                 $return[] = $int;
                 $chunk    = 0;
-                $int      = null;
+                $int      = '';
             }
         }
         if ($chunk > 0) {
