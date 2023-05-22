@@ -1,0 +1,13 @@
+---
+services:
+  php:
+    build:
+      context: .
+      args:
+        PHP_VERSION: "${PHP_VERSION:-8.1}"
+    restart: never
+    env_file:
+      - ./.env
+    volumes:
+      - ..:/web
+    working_dir: /web

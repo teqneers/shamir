@@ -1,3 +1,4 @@
+.cache
 .idea
 .DS_Store
 
@@ -5,6 +6,9 @@ composer.phar
 composer.lock
 vendor/
 
+docker/.env
+
+.phpunit.result.cache
 phpunit
 phpunit.xml
 
