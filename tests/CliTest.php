@@ -2,6 +2,7 @@
 
 namespace TQ\Shamir\Tests;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 
@@ -13,13 +14,7 @@ class CliTest extends TestCase
 
     protected $descriptorSpec;
 
-    protected $cmd;
-
-    public function __construct($name = null, array $data = [], $dataName = '')
-    {
-        parent::__construct($name, $data, $dataName);
-        $this->cmd = __DIR__.'/../bin/shamir.php';
-    }
+    protected static $cmd = __DIR__.'/../bin/shamir.php';
 
     /**
      * Call protected/private method of a class.
@@ -33,10 +28,8 @@ class CliTest extends TestCase
     public function invokeMethod($object, $methodName, array $parameters = [])
     {
         $reflection = new ReflectionClass(get_class($object));
-        $method     = $reflection->getMethod($methodName);
-        $method->setAccessible(true);
 
-        return $method->invokeArgs($object, $parameters);
+        return $reflection->getMethod($methodName)->invokeArgs($object, $parameters);
     }
 
     /**
@@ -51,17 +44,15 @@ class CliTest extends TestCase
     public function invokeStaticMethod($class, $methodName, array $parameters = [])
     {
         $reflection = new ReflectionClass($class);
-        $method     = $reflection->getMethod($methodName);
-        $method->setAccessible(true);
 
-        return $method->invokeArgs(null, $parameters);
+        return $reflection->getMethod($methodName)->invokeArgs(null, $parameters);
     }
 
     protected function setUp(): void
     {
         $this->descriptorSpec = [
             1 => ["pipe", "w"], // stdout is a pipe that the child will write to
-            2 => ["pipe", "w"] // stderr is a pipe that the child will write to
+            2 => ["pipe", "w"], // stderr is a pipe that the child will write to
         ];
     }
 
@@ -83,46 +74,44 @@ class CliTest extends TestCase
         return $ret;
     }
 
-    public function provideUsage(): array
+    public static function provideUsage(): array
     {
         return [
-            [$this->cmd, '.*Usage:.*'],
-            [$this->cmd, '.*Available commands:.*'],
-            [$this->cmd.' help', '.*Usage:.*'],
-            [$this->cmd.' -h', '.*Usage:.*'],
-            [$this->cmd.' --help', '.*Usage:.*'],
-            [$this->cmd.' list', '.*Usage:.*'],
-            [$this->cmd.' list', '.*Available commands:.*'],
-            [$this->cmd.' list', '.*Available commands:.*'],
-            [$this->cmd.' help shamir:share', '.*Create a shared secret.*'],
-            [$this->cmd.' help shamir:recover', '.*Recover a shared secret.*'],
+            [self::$cmd, '.*Usage:.*'],
+            [self::$cmd, '.*Available commands:.*'],
+            [self::$cmd.' help', '.*Usage:.*'],
+            [self::$cmd.' -h', '.*Usage:.*'],
+            [self::$cmd.' --help', '.*Usage:.*'],
+            [self::$cmd.' list', '.*Usage:.*'],
+            [self::$cmd.' list', '.*Available commands:.*'],
+            [self::$cmd.' list', '.*Available commands:.*'],
+            [self::$cmd.' help shamir:share', '.*Create a shared secret.*'],
+            [self::$cmd.' help shamir:recover', '.*Recover a shared secret.*'],
         ];
     }
 
-    /**
-     * @dataProvider provideUsage
-     */
+    #[DataProvider('provideUsage')]
     public function testUsage($cmd, $regexp): void
     {
         $ret = $this->execute($cmd);
 
         self::assertEquals(0, $ret['ret']);
-        self::assertRegExp('('.$regexp.')', $ret['std']);
+        self::assertMatchesRegularExpression('('.$regexp.')', $ret['std']);
         self::assertSame('', $ret['err']);
     }
 
     public function testWrongCommand(): void
     {
-        $ret = $this->execute($this->cmd.' quatsch');
+        $ret = $this->execute(self::$cmd.' quatsch');
 
         self::assertEquals(1, $ret['ret']);
         self::assertSame('', $ret['std']);
-        self::assertRegExp('(.*Command "quatsch" is not defined..*)', $ret['err']);
+        self::assertMatchesRegularExpression('(.*Command "quatsch" is not defined..*)', $ret['err']);
     }
 
     public function testUsageQuiet(): void
     {
-        $ret = $this->execute($this->cmd.' help -q');
+        $ret = $this->execute(self::$cmd.' help -q');
 
         self::assertEquals(0, $ret['ret']);
         self::assertSame('', $ret['std']);
@@ -131,27 +120,27 @@ class CliTest extends TestCase
 
     public function testVersion(): void
     {
-        $ret = $this->execute($this->cmd.' -V');
+        $ret = $this->execute(self::$cmd.' -V');
 
         self::assertEquals(0, $ret['ret']);
-        self::assertRegExp('(Shamir\'s Shared Secret CLI.*)', $ret['std']);
+        self::assertMatchesRegularExpression('(Shamir\'s Shared Secret CLI.*)', $ret['std']);
     }
 
     public function testFileInput(): void
     {
-        $ret = $this->execute($this->cmd.' shamir:share -f tests/secret.txt');
+        $ret = $this->execute(self::$cmd.' shamir:share -f tests/secret.txt');
         self::assertEquals(0, $ret['ret']);
-        self::assertRegExp('(10201.*)', $ret['std']);
-        self::assertRegExp('(10202.*)', $ret['std']);
-        self::assertRegExp('(10203.*)', $ret['std']);
+        self::assertMatchesRegularExpression('(10201.*)', $ret['std']);
+        self::assertMatchesRegularExpression('(10202.*)', $ret['std']);
+        self::assertMatchesRegularExpression('(10203.*)', $ret['std']);
     }
 
     public function testStandardInput(): void
     {
-        $ret = $this->execute('echo -n "Share my secret" | '.$this->cmd.' shamir:share');
+        $ret = $this->execute('echo -n "Share my secret" | '.self::$cmd.' shamir:share');
         self::assertEquals(0, $ret['ret']);
-        self::assertRegExp('(10201.*)', $ret['std']);
-        self::assertRegExp('(10202.*)', $ret['std']);
-        self::assertRegExp('(10203.*)', $ret['std']);
+        self::assertMatchesRegularExpression('(10201.*)', $ret['std']);
+        self::assertMatchesRegularExpression('(10202.*)', $ret['std']);
+        self::assertMatchesRegularExpression('(10203.*)', $ret['std']);
     }
 }

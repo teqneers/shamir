@@ -3,6 +3,7 @@
 namespace TQ\Shamir\Tests;
 
 use OutOfRangeException;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockBuilder;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
@@ -14,9 +15,9 @@ use TQ\Shamir\Secret;
 
 class SecretTest extends TestCase
 {
-    protected $secretUtf8 = 'Lorem ipsum dolor sit असरकारक संस्थान δισεντιας قبضتهم нолюёжжэ 問ナマ業71職げら覧品モス変害';
+    protected static $secretUtf8 = 'Lorem ipsum dolor sit असरकारक संस्थान δισεντιας قبضتهم нолюёжжэ 問ナマ業71職げら覧品モス変害';
 
-    protected $secretAscii;
+    protected static $secretAscii;
 
     /**
      * Call protected/private method of a class.
@@ -30,10 +31,8 @@ class SecretTest extends TestCase
     public function invokeMethod($object, $methodName, array $parameters = [])
     {
         $reflection = new ReflectionClass(get_class($object));
-        $method     = $reflection->getMethod($methodName);
-        $method->setAccessible(true);
 
-        return $method->invokeArgs($object, $parameters);
+        return $reflection->getMethod($methodName)->invokeArgs($object, $parameters);
     }
 
     /**
@@ -48,10 +47,8 @@ class SecretTest extends TestCase
     public function invokeStaticMethod($class, $methodName, array $parameters = [])
     {
         $reflection = new ReflectionClass($class);
-        $method     = $reflection->getMethod($methodName);
-        $method->setAccessible(true);
 
-        return $method->invokeArgs(null, $parameters);
+        return $reflection->getMethod($methodName)->invokeArgs(null, $parameters);
     }
 
     protected function setUp(): void
@@ -66,7 +63,7 @@ class SecretTest extends TestCase
         Secret::setAlgorithm(null);
     }
 
-    public function provideConvertBase(): array
+    public static function provideConvertBase(): array
     {
         return [
             # dec -> dec
@@ -102,9 +99,7 @@ class SecretTest extends TestCase
         ];
     }
 
-    /**
-     * @dataProvider provideConvertBase
-     */
+    #[DataProvider('provideConvertBase')]
     public function testConvBase($numberInput, $fromBaseInput, $toBaseInput, $expected): void
     {
         $returnVal = $this->invokeStaticMethod(
@@ -161,32 +156,30 @@ class SecretTest extends TestCase
         self::assertSame($new, $algorithm->getRandomGenerator());
     }
 
-    public function provideShareAndRecoverMultipleBytes(): array
+    public static function provideShareAndRecoverMultipleBytes(): array
     {
-        if (empty($this->secretAscii)) {
+        if (empty(self::$secretAscii)) {
             // generate string with all ASCII chars
-            $this->secretAscii = '';
+            self::$secretAscii = '';
             for ($i = 0; $i < 256; ++$i) {
-                $this->secretAscii .= chr($i);
+                self::$secretAscii .= chr($i);
             }
         }
 
         $return = [];
         // add full ASCII charset
         for ($bytes = 1; $bytes < 8; ++$bytes) {
-            $return[] = [$this->secretAscii, $bytes];
+            $return[] = [self::$secretAscii, $bytes];
         }
         // add some unicode chars
         for ($bytes = 1; $bytes < 8; ++$bytes) {
-            $return[] = [$this->secretUtf8, $bytes];
+            $return[] = [self::$secretUtf8, $bytes];
         }
 
         return $return;
     }
 
-    /**
-     * @dataProvider provideShareAndRecoverMultipleBytes
-     */
+    #[DataProvider('provideShareAndRecoverMultipleBytes')]
     public function testShareAndRecoverMultipleBytes($secret, $bytes): void
     {
         $shamir = new Shamir();
@@ -284,9 +277,7 @@ class SecretTest extends TestCase
         self::assertSame($secret, $recover);
     }
 
-    /**
-     * @dataProvider provideShareAndRecoverMultipleBytes
-     */
+    #[DataProvider('provideShareAndRecoverMultipleBytes')]
     public function testChunkSizeGetter($secret, $bytes): void
     {
         $shamir = new Shamir();
@@ -295,7 +286,7 @@ class SecretTest extends TestCase
         self::assertSame($shamir->getChunkSize(), $bytes);
     }
 
-    public function provideChunkSize(): array
+    public static function provideChunkSize(): array
     {
         return [
             [0],
@@ -305,9 +296,7 @@ class SecretTest extends TestCase
         ];
     }
 
-    /**
-     * @dataProvider provideChunkSize
-     */
+    #[DataProvider('provideChunkSize')]
     public function testOpenSslGeneratorInputExceptions($chunkSize): void
     {
         $this->expectException(OutOfRangeException::class);

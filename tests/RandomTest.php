@@ -2,6 +2,7 @@
 
 namespace TQ\Shamir\Tests;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use TQ\Shamir\Random\OpenSslGenerator;
 use TQ\Shamir\Random\PhpGenerator;
@@ -49,7 +50,7 @@ class RandomTest extends TestCase
         );
     }
 
-    public function provideRandomInput(): array
+    public static function provideRandomInput(): array
     {
         return [
             [PHP_INT_MAX, 0, 'OutOfRangeException'],
@@ -58,9 +59,7 @@ class RandomTest extends TestCase
         ];
     }
 
-    /**
-     * @dataProvider provideRandomInput
-     */
+    #[DataProvider('provideRandomInput')]
     public function testPhpGeneratorInputException($max, $min, $exception): void
     {
         $this->expectException($exception);
@@ -112,7 +111,7 @@ class RandomTest extends TestCase
         self::assertTrue($random->isForceStrong());
     }
 
-    public function provideOpenSslBytes(): array
+    public static function provideOpenSslBytes(): array
     {
         return [
             [0],
@@ -120,9 +119,7 @@ class RandomTest extends TestCase
         ];
     }
 
-    /**
-     * @dataProvider provideOpenSslBytes
-     */
+    #[DataProvider('provideOpenSslBytes')]
     public function testOpenSslGeneratorInputException($bytes): void
     {
         if (!function_exists('openssl_random_pseudo_bytes')) {
