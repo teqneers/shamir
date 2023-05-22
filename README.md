@@ -123,7 +123,7 @@ var_dump(Secret::recover(array_slice($shares, 1, 3)));
 Requirements
 ============
 
-PHP 7.2.0 or above
+PHP >= 7.2.0 and <= 8.1.x
 
 Integrations
 ============
