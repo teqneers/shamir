@@ -95,8 +95,8 @@ class CliTest extends TestCase
 
     public function testFileInput(): void
     {
-        $ret = $this->execute(self::$cmd.' shamir:share -f '.__DIR__.'/secret.txt');
-        self::assertEquals(0, $ret['ret']);
+        $ret = $this->execute(self::$cmd.' shamir:share -f tests/secret.txt');
+        self::assertEquals(0, $ret['ret'], 'Non zero return code: '.var_export($ret, true));
         self::assertMatchesRegularExpression('(10201.*)', $ret['std']);
         self::assertMatchesRegularExpression('(10202.*)', $ret['std']);
         self::assertMatchesRegularExpression('(10203.*)', $ret['std']);
