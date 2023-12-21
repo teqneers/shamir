@@ -29,9 +29,7 @@ class OpenSslGenerator implements Generator
     protected $forceStrong = true;
 
     /**
-     * Constructor
-     *
-     * @param  int   $bytes        Bytes to use in result
+     * @param  int   $bytes        Bytes to use in the result
      * @param  bool  $forceStrong  Force strong random number generation
      */
     public function __construct(int $bytes = PHP_INT_SIZE, bool $forceStrong = true)
@@ -44,9 +42,6 @@ class OpenSslGenerator implements Generator
         $this->forceStrong = $forceStrong;
     }
 
-    /**
-     * @return bool
-     */
     public function isForceStrong(): bool
     {
         return $this->forceStrong;

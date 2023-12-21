@@ -27,9 +27,6 @@ interface Algorithm
     /**
      * Recovers the secret from the given shared keys
      *
-     * @param  array  $keys
-     *
-     * @return  string
      * @throws RuntimeException
      */
     public function recover(array $keys): string;

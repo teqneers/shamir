@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: stefan
- * Date: 21.09.14
- * Time: 10:28
- */
 
 namespace TQ\Shamir\Console;
 
@@ -112,10 +106,6 @@ class ShareCommand extends Command
 
     /**
      * Check STDIN or file option for input of secret
-     *
-     * @param  InputInterface   $input
-     * @param  OutputInterface  $output
-     * @return string|null
      */
     protected function readFile(InputInterface $input, OutputInterface $output): ?string
     {
