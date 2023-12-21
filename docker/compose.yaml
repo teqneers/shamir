@@ -5,7 +5,7 @@ services:
       context: .
       args:
         PHP_VERSION: "${PHP_VERSION:-8.1}"
-    restart: never
+    restart: no
     env_file:
       - ./.env
     volumes:

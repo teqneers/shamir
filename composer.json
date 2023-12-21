@@ -1,44 +1,45 @@
 {
-  "name": "teqneers/shamir",
-  "description": "This is Shamir's Shared Secret implementation in PHP. It allows you to create shared secrets using the PHP classes or the CLI interface.",
-  "minimum-stability": "stable",
-  "type": "library",
-  "license": "MIT",
-  "authors": [
+  "name" : "teqneers/shamir",
+  "description" : "This is Shamir's Shared Secret implementation in PHP. It allows you to create shared secrets using the PHP classes or the CLI interface.",
+  "minimum-stability" : "stable",
+  "type" : "library",
+  "license" : "MIT",
+  "authors" : [
     {
-      "name": "Stefan Gehrig",
-      "email": "gehrig@teqneers.de",
-      "homepage": "https://teqneers.de/"
+      "name" : "Stefan Gehrig",
+      "email" : "gehrig@teqneers.de",
+      "homepage" : "https://teqneers.de/"
     },
     {
-      "name": "Oliver Müller",
-      "email": "mueller@teqneers.de",
-      "homepage": "https://teqneers.de/"
+      "name" : "Oliver Müller",
+      "email" : "mueller@teqneers.de",
+      "homepage" : "https://teqneers.de/"
     }
   ],
-  "require": {
-    "php": ">=8.1",
-    "symfony/console": "^5.0 || ^6.0",
-    "ext-bcmath": "*"
+  "require" : {
+    "php" : ">=8.1",
+    "symfony/console" : "^5.0 || ^6.0",
+    "ext-bcmath" : "*"
   },
-  "suggest": {
-    "ext-openssl": "For using its random generator instead of PHP one"
+  "suggest" : {
+    "ext-openssl" : "For using its random generator instead of PHP one"
   },
-  "config": {
-    "sort-packages": true
+  "config" : {
+    "sort-packages" : true
   },
-  "require-dev": {
-    "phpunit/phpunit": "^10.0",
-    "roave/security-advisories": "dev-master"
+  "require-dev" : {
+    "phpunit/phpunit" : "^10.0",
+    "roave/security-advisories" : "dev-master",
+    "scrutinizer/ocular" : "dev-master"
   },
-  "autoload": {
-    "psr-4": {
-      "TQ\\Shamir\\": "src/"
+  "autoload" : {
+    "psr-4" : {
+      "TQ\\Shamir\\" : "src/"
     }
   },
-  "autoload-dev": {
-    "psr-4": {
-      "TQ\\Shamir\\Tests\\": "tests/"
+  "autoload-dev" : {
+    "psr-4" : {
+      "TQ\\Shamir\\Tests\\" : "tests/"
     }
   }
 }

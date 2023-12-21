@@ -4,7 +4,6 @@ namespace TQ\Shamir\Tests;
 
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
-use ReflectionClass;
 
 class CliTest extends TestCase
 {
@@ -15,38 +14,6 @@ class CliTest extends TestCase
     protected $descriptorSpec;
 
     protected static $cmd = __DIR__.'/../bin/shamir.php';
-
-    /**
-     * Call protected/private method of a class.
-     *
-     * @param  object  $object      Instantiated object that we will run method on.
-     * @param  string  $methodName  Method name to call
-     * @param  array   $parameters  Array of parameters to pass into method.
-     *
-     * @return mixed Method return.
-     */
-    public function invokeMethod($object, $methodName, array $parameters = [])
-    {
-        $reflection = new ReflectionClass(get_class($object));
-
-        return $reflection->getMethod($methodName)->invokeArgs($object, $parameters);
-    }
-
-    /**
-     * Call protected/private static method of a class.
-     *
-     * @param  string  $class       Name of the class
-     * @param  string  $methodName  Static method name to call
-     * @param  array   $parameters  Array of parameters to pass into method.
-     *
-     * @return mixed Method return.
-     */
-    public function invokeStaticMethod($class, $methodName, array $parameters = [])
-    {
-        $reflection = new ReflectionClass($class);
-
-        return $reflection->getMethod($methodName)->invokeArgs(null, $parameters);
-    }
 
     protected function setUp(): void
     {

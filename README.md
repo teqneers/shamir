@@ -27,7 +27,7 @@ Usage
 
 ```bash
 # bin/shamir.php
-Shamir's Shared Secret CLI 1.1.0
+Shamir's Shared Secret CLI 2.0.0
 
 Usage:
   command [options] [arguments]
