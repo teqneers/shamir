@@ -62,7 +62,7 @@ class CliTest extends TestCase
     {
         $ret = $this->execute($cmd);
 
-        self::assertEquals(0, $ret['ret']);
+        self::assertEquals(0, $ret['ret'], 'Non zero return code: '.var_export($ret, true));
         self::assertMatchesRegularExpression('('.$regexp.')', $ret['std']);
         self::assertSame('', $ret['err']);
     }
@@ -80,7 +80,7 @@ class CliTest extends TestCase
     {
         $ret = $this->execute(self::$cmd.' help -q');
 
-        self::assertEquals(0, $ret['ret']);
+        self::assertEquals(0, $ret['ret'], 'Non zero return code: '.var_export($ret, true));
         self::assertSame('', $ret['std']);
         self::assertSame('', $ret['err']);
     }
@@ -105,7 +105,7 @@ class CliTest extends TestCase
     public function testStandardInput(): void
     {
         $ret = $this->execute('echo -n "Share my secret" | '.self::$cmd.' shamir:share');
-        self::assertEquals(0, $ret['ret']);
+        self::assertEquals(0, $ret['ret'], 'Non zero return code: '.var_export($ret, true));
         self::assertMatchesRegularExpression('(10201.*)', $ret['std']);
         self::assertMatchesRegularExpression('(10202.*)', $ret['std']);
         self::assertMatchesRegularExpression('(10203.*)', $ret['std']);
