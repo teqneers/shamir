@@ -77,5 +77,8 @@ jobs:
         uses: paambaati/codeclimate-action@v5.0.0
         env:
           CC_TEST_REPORTER_ID: ${{secrets.CC_TEST_REPORTER_ID}}
+        with:
+          coverageLocations: coverage.clover
+
 
 # vim: syntax=yaml ts=2 sw=2 et sr softtabstop=2 autoindent
