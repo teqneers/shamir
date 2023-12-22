@@ -64,12 +64,8 @@ jobs:
       - name: PHPUnit Tests
         run: vendor/bin/phpunit --coverage-clover=coverage.clover
 
-      # For code coverage report we are uploading our code coverage report to scrutinizer
-      - name: Downloading scrutinizer ocular.phar
-        run: wget https://scrutinizer-ci.com/ocular.phar
-
         # Uploading reports for analysis
       - name: Upload code-coverage to scrutinizer
-        run: php ocular.phar code-coverage:upload --format=php-clover coverage.clover
+        run: vendor/bin/ocular code-coverage:upload --format=php-clover coverage.clover
 
 # vim: syntax=yaml ts=2 sw=2 et sr softtabstop=2 autoindent
