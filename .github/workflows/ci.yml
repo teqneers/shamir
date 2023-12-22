@@ -74,11 +74,12 @@ jobs:
         run: vendor/bin/ocular code-coverage:upload --format=php-clover coverage.clover
 
       - name: Publish code coverage to Code Climate
-        uses: paambaati/codeclimate-action@v5.0.0
+        uses: paambaati/codeclimate-action@v5
         env:
-          CC_TEST_REPORTER_ID: ${{secrets.CC_TEST_REPORTER_ID}}
+          CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
         with:
-          coverageLocations: coverage.clover
+          coverageLocations: |
+            coverage.clover:clover
 
 
 # vim: syntax=yaml ts=2 sw=2 et sr softtabstop=2 autoindent
