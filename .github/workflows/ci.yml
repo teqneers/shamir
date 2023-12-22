@@ -33,6 +33,8 @@ jobs:
     steps:
       - name: checkout project
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
