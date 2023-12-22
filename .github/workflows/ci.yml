@@ -41,7 +41,7 @@ jobs:
           extensions: bcmath
           tools: composer:v2
           # For PHPUnit code coverage, we need xdebug
-          coverage: xdebug
+          coverage: pcov
 
       - name: Validate composer.json and composer.lock
         run: composer validate
