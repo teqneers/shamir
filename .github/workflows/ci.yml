@@ -67,7 +67,10 @@ jobs:
       - name: Downloading scrutinizer ocular.phar
         run: wget https://scrutinizer-ci.com/ocular.phar
 
-      # Uploading reports for analysis
+      - name: ls
+        run: ls -alF
+
+        # Uploading reports for analysis
       - name: Upload code-coverage to scrutinizer
         run: php ocular.phar code-coverage:upload --format=php-clover coverage.clover
 
