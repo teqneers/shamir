@@ -23,7 +23,9 @@ jobs:
         php-version: [
             "8.1",
             "8.2",
-            "8.3"
+            "8.3",
+            # also try a future version
+            "8.4"
         ]
         composer-param: [
             "update --no-progress --prefer-dist --prefer-lowest",
@@ -34,6 +36,7 @@ jobs:
       - name: checkout project
         uses: actions/checkout@v4
         with:
+          # needed by scrutinizer
           fetch-depth: 2
 
       - name: Setup PHP
@@ -42,7 +45,7 @@ jobs:
           php-version: ${{ matrix.php-version }}
           extensions: bcmath
           tools: composer:v2
-          # For PHPUnit code coverage, we need xdebug
+          # needed by PHPUnit code coverage
           coverage: pcov
 
       - name: Validate composer.json and composer.lock
@@ -69,5 +72,10 @@ jobs:
         # Uploading reports for analysis
       - name: Upload code-coverage to scrutinizer
         run: vendor/bin/ocular code-coverage:upload --format=php-clover coverage.clover
+
+      - name: Publish code coverage to Code Climate
+        uses: paambaati/codeclimate-action@v5.0.0
+        env:
+          CC_TEST_REPORTER_ID: ${{secrets.CC_TEST_REPORTER_ID}}
 
 # vim: syntax=yaml ts=2 sw=2 et sr softtabstop=2 autoindent
