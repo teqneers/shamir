@@ -111,27 +111,27 @@ class ShareCommand extends Command
     {
         $secret = null;
 
-        # check if data is given by STDIN
-        $readStreams   = [STDIN];
-        $writeStreams  = [];
-        $exceptStreams = [];
-        $streamCount   = stream_select($readStreams, $writeStreams, $exceptStreams, 0);
+        $file = $input->getOption('file');
 
-        if ($streamCount === 1) {
-            while (!feof(STDIN)) {
-                $secret .= fread(STDIN, 1024);
+        if ($file !== null) {
+            # check for secret in file
+            if (!is_readable($file)) {
+                $output->writeln('<error>ERROR: file "'.$file.'" is not readable.');
+                exit(1);
             }
+
+            $secret = file_get_contents($file);
         } else {
-            $file = $input->getOption('file');
+            # check if data is given by STDIN
+            $readStreams   = [STDIN];
+            $writeStreams  = [];
+            $exceptStreams = [];
+            $streamCount   = stream_select($readStreams, $writeStreams, $exceptStreams, 0);
 
-            if ($file !== null) {
-                # check for secret in file
-                if (!is_readable($file)) {
-                    $output->writeln('<error>ERROR: file "'.$file.'" is not readable.');
-                    exit(1);
+            if ($streamCount === 1) {
+                while (!feof(STDIN)) {
+                    $secret .= fread(STDIN, 1024);
                 }
-
-                $secret = file_get_contents($file);
             }
         }
 
