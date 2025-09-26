@@ -28,8 +28,6 @@ class PhpGenerator implements Generator
     protected $min = 1;
 
     /**
-     * Constructor
-     *
      * @param  int  $max  The maximum random number
      * @param  int  $min  The minimum random number (must be positive)
      */

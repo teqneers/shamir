@@ -29,14 +29,12 @@ class OpenSslGenerator implements Generator
     protected $forceStrong = true;
 
     /**
-     * Constructor
-     *
-     * @param  int   $bytes        Bytes to use in result
+     * @param  int   $bytes        Bytes to use in the result
      * @param  bool  $forceStrong  Force strong random number generation
      */
     public function __construct(int $bytes = PHP_INT_SIZE, bool $forceStrong = true)
     {
-        if($bytes < 1) {
+        if ($bytes < 1) {
             throw new OutOfRangeException('The length of the desired string of bytes. Must be a positive integer.');
         }
 
@@ -44,9 +42,6 @@ class OpenSslGenerator implements Generator
         $this->forceStrong = $forceStrong;
     }
 
-    /**
-     * @return bool
-     */
     public function isForceStrong(): bool
     {
         return $this->forceStrong;
@@ -59,8 +54,8 @@ class OpenSslGenerator implements Generator
      */
     public function getRandomInt()
     {
-        $random = openssl_random_pseudo_bytes($this->bytes, $strong);
-        if ($random === false || ($this->forceStrong && $strong !== true)) {
+        $random = openssl_random_pseudo_bytes($this->bytes, $isSourceStrong);
+        if ($random === false || ($this->forceStrong && $isSourceStrong !== true)) {
             throw new RuntimeException(
                 'Random number generator algorithm didn\'t used "cryptographically strong" method.'
             );

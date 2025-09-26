@@ -73,8 +73,6 @@ class Secret
 
     /**
      * Returns the algorithm
-     *
-     * @return  Algorithm|null
      */
     public static function getAlgorithm(): ?Algorithm
     {
@@ -126,10 +124,6 @@ class Secret
 
     /**
      * Recovers the secret from the given shared keys
-     *
-     * @param  array  $keys
-     *
-     * @return  string
      */
     public static function recover(array $keys): string
     {

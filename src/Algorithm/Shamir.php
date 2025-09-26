@@ -89,7 +89,6 @@ class Shamir implements Algorithm, RandomGeneratorAware
 
     /**
      * @inheritdoc
-     * @return Shamir
      */
     public function setRandomGenerator(Generator $generator): Shamir
     {
@@ -100,8 +99,6 @@ class Shamir implements Algorithm, RandomGeneratorAware
 
     /**
      * Returns chunk size in bytes
-     *
-     * @return int
      */
     public function getChunkSize(): int
     {
@@ -117,7 +114,6 @@ class Shamir implements Algorithm, RandomGeneratorAware
      *
      * @see
      * @param  int  $chunkSize  Size in number of bytes
-     * @return Shamir
      * @throws OutOfRangeException
      */
     public function setChunkSize(int $chunkSize): Shamir
@@ -148,7 +144,6 @@ class Shamir implements Algorithm, RandomGeneratorAware
      *
      * @see    setChunkSize()
      * @param  int  $max  Maximum number of keys needed
-     * @return Shamir
      * @throws OutOfRangeException
      */
     protected function setMaxShares(int $max): Shamir
@@ -173,8 +168,8 @@ class Shamir implements Algorithm, RandomGeneratorAware
             );
         }
 
-        // calculate how many bytes we need to represent number of shares.
-        // e.g. everything less than 256 needs only a single byte.
+        // calculate how many bytes we need to represent the number of shares.
+        // e.g., everything less than 256 needs only a single byte.
         $chunkSize = (int)ceil(log($max, 2) / 8);
         // if chunk size has been set already, we will only increase it, if necessary
         $chunkSize = max($chunkSize, $this->chunkSize);
@@ -191,7 +186,6 @@ class Shamir implements Algorithm, RandomGeneratorAware
     /**
      * Calculate modulo of any given number using prime
      *
-     * @param  string     Number
      * @return int     Module of number
      */
     protected function modulo(string $number): int
@@ -203,10 +197,6 @@ class Shamir implements Algorithm, RandomGeneratorAware
 
     /**
      * Returns decomposition of the greatest common divisor of a and b
-     *
-     * @param  int     $a
-     * @param  string  $b
-     * @return array
      */
     protected function gcdD(int $a, string $b): array
     {
@@ -223,9 +213,6 @@ class Shamir implements Algorithm, RandomGeneratorAware
 
     /**
      * Calculates the inverse modulo
-     *
-     * @param  int  $number
-     * @return string
      */
     protected function inverseModulo(int $number): string
     {
@@ -239,9 +226,6 @@ class Shamir implements Algorithm, RandomGeneratorAware
     /**
      * Calculates the reverse coefficients
      *
-     * @param  array  $keyX
-     * @param  int    $threshold
-     * @return array
      * @throws RuntimeException
      */
     protected function reverseCoefficients(array $keyX, int $threshold): array
@@ -273,8 +257,6 @@ class Shamir implements Algorithm, RandomGeneratorAware
      * Generate random coefficients
      *
      * @param  int  $threshold  Number of coefficients needed
-     *
-     * @return array
      */
     protected function generateCoefficients(int $threshold): array
     {
@@ -315,11 +297,6 @@ class Shamir implements Algorithm, RandomGeneratorAware
 
     /**
      * Converts from $fromBaseInput to $toBaseInput
-     *
-     * @param  string  $numberInput
-     * @param  string  $fromBaseInput
-     * @param  string  $toBaseInput
-     * @return string
      */
     protected static function convBase(string $numberInput, string $fromBaseInput, string $toBaseInput): string
     {
@@ -412,7 +389,6 @@ class Shamir implements Algorithm, RandomGeneratorAware
      * @param  string  $secret     Secret
      * @param  int     $shares     Number of parts to share
      * @param  int     $threshold  Minimum number of shares required for decryption
-     * @return array
      */
     protected function divideSecret(string $secret, int $shares, int $threshold): array
     {
@@ -504,7 +480,6 @@ class Shamir implements Algorithm, RandomGeneratorAware
      * @param  int    $bytes      Chunk size in bytes
      * @param  int    $keyLen     Key length in chunks
      * @param  int    $threshold  Minimum number of shares required for decryption
-     * @return string
      */
     protected function joinSecret(array $keyX, array $keyY, int $bytes, int $keyLen, int $threshold): string
     {

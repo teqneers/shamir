@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: stefan
- * Date: 21.09.14
- * Time: 10:28
- */
 
 namespace TQ\Shamir\Console;
 
@@ -104,7 +98,7 @@ class ShareCommand extends Command
 
         /** @var FormatterHelper $formatter */
         $formatter = $this->getHelper('formatter');
-        $block     = $formatter->formatBlock($shared, 'info', true);
+        $block     = $formatter->formatBlock($shared, 'info');
         $output->writeln($block);
 
         return 0;
@@ -112,36 +106,32 @@ class ShareCommand extends Command
 
     /**
      * Check STDIN or file option for input of secret
-     *
-     * @param  InputInterface   $input
-     * @param  OutputInterface  $output
-     * @return string|null
      */
     protected function readFile(InputInterface $input, OutputInterface $output): ?string
     {
         $secret = null;
 
-        # check if data is given by STDIN
-        $readStreams   = [STDIN];
-        $writeStreams  = [];
-        $exceptStreams = [];
-        $streamCount   = stream_select($readStreams, $writeStreams, $exceptStreams, 0);
+        $file = $input->getOption('file');
 
-        if ($streamCount === 1) {
-            while (!feof(STDIN)) {
-                $secret .= fread(STDIN, 1024);
+        if ($file !== null) {
+            # check for secret in file
+            if (!is_readable($file)) {
+                $output->writeln('<error>ERROR: file "'.$file.'" is not readable.');
+                exit(1);
             }
+
+            $secret = file_get_contents($file);
         } else {
-            $file = $input->getOption('file');
+            # check if data is given by STDIN
+            $readStreams   = [STDIN];
+            $writeStreams  = [];
+            $exceptStreams = [];
+            $streamCount   = stream_select($readStreams, $writeStreams, $exceptStreams, 0);
 
-            if ($file !== null) {
-                # check for secret in file
-                if (!is_readable($file)) {
-                    $output->writeln('<error>ERROR: file "'.$file.'" is not readable.');
-                    exit(1);
+            if ($streamCount === 1) {
+                while (!feof(STDIN)) {
+                    $secret .= fread(STDIN, 1024);
                 }
-
-                $secret = file_get_contents($file);
             }
         }
 

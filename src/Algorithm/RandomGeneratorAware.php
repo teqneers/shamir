@@ -13,15 +13,11 @@ interface RandomGeneratorAware
 {
     /**
      * Sets the random generator
-     *
-     * @param  Generator  $generator
      */
     public function setRandomGenerator(Generator $generator);
 
     /**
      * Returns the random generator
-     *
-     * @return Generator
      */
     public function getRandomGenerator(): Generator;
 }

@@ -3,7 +3,7 @@
          xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/10.1/phpunit.xsd"
          backupGlobals="false"
          backupStaticProperties="false"
-         convertDeprecationsToExceptions="true"
+         displayDetailsOnTestsThatTriggerDeprecations="true"
          colors="true"
          cacheDirectory="/app/.cache/phpunit"
          processIsolation="false"

@@ -1,66 +1,85 @@
 name: CI
 on:
-    push:
-        branches: [ master ]
-    pull_request:
-        branches: [ master ]
+  push:
+    paths-ignore:
+      - 'README.md'
+      - 'LICENSE'
+      - 'example'
+    branches: [ master ]
+  pull_request:
+    paths-ignore:
+      - 'README.md'
+      - 'LICENSE'
+      - 'example'
+    branches: [ master ]
 
 jobs:
-    test:
-        runs-on: ubuntu-latest
-        strategy:
-            max-parallel: 2
-            fail-fast: false
-            matrix:
-                php-version: [
-                        "7.2",
-                        "7.3",
-                        "7.4",
-                        "8.0",
-                        "8.1"
-                ]
-                composer-param: [
-                        "update --no-progress --prefer-source --prefer-lowest",
-                        "update --no-progress --prefer-source"
-                ]
-        name: PHP ${{ matrix.php-version }} test
-        steps:
-            -   name: checkout project
-                uses: actions/checkout@v2
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      max-parallel: 2
+      fail-fast: false
+      matrix:
+        php-version: [
+            "8.1",
+            "8.2",
+            "8.3",
+            # also try a future version
+            "8.4"
+        ]
+        composer-param: [
+            "update --no-progress --prefer-dist --prefer-lowest",
+            "update --no-progress --prefer-dist"
+        ]
+    name: PHP ${{ matrix.php-version }} test
+    steps:
+      - name: checkout project
+        uses: actions/checkout@v4
+        with:
+          # needed by scrutinizer
+          fetch-depth: 2
 
-            -   name: Setup PHP
-                uses: shivammathur/setup-php@v2
-                with:
-                    php-version: ${{ matrix.php-version }}
-                    extensions: bcmath
-                    tools: composer:v2
-                    # For PHPUnit code coverage, we need xdebug
-                    coverage: xdebug
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-version }}
+          extensions: bcmath
+          tools: composer:v2
+          # needed by PHPUnit code coverage
+          coverage: pcov
 
-            -   name: Validate composer.json and composer.lock
-                run: composer validate
+      - name: Validate composer.json and composer.lock
+        run: composer validate
 
-#            -   name: Cache Composer packages
-#                id: composer-cache
-#                uses: actions/cache@v2
-#                with:
-#                    path: vendor
-#                    key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
-#                    restore-keys: |
-#                        ${{ runner.os }}-php-
+      - name: Get composer cache directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-dir)" >> $GITHUB_OUTPUT
 
-            -   name: Install dependencies
-#                if: steps.composer-cache.outputs.cache-hit != 'true'
-                run: composer ${{ matrix.composer-param }}
+      - name: Cache composer dependencies
+        uses: actions/cache@v3
+        with:
+            path: ${{ steps.composer-cache.outputs.dir }}
+            key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+            restore-keys: ${{ runner.os }}-composer-
 
-            # Run phpunit with code coverage
-            -   name: PHPUnit Tests
-                run: vendor/bin/phpunit --coverage-clover=coverage.clover
+      - name: Install dependencies
+        run: composer ${{ matrix.composer-param }}
 
-            # For code coverage report we are uploading our code coverage report to scrutinizer
-            -   name: Downloading scrutinizer ocular.phar
-                run: wget https://scrutinizer-ci.com/ocular.phar
+      # Run phpunit with code coverage
+      - name: PHPUnit Tests
+        run: vendor/bin/phpunit --coverage-clover=coverage.clover
 
-            # Uploading reports for analysis
-            -   name: Upload code-coverage to scrutinizer
-                run: php ocular.phar code-coverage:upload --format=php-clover coverage.clover
+        # Uploading reports for analysis
+      - name: Upload code-coverage to scrutinizer
+        run: vendor/bin/ocular code-coverage:upload --format=php-clover coverage.clover
+
+      - name: Publish code coverage to Code Climate
+        uses: paambaati/codeclimate-action@v5
+        env:
+          CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
+        with:
+          coverageLocations: |
+            coverage.clover:clover
+
+
+# vim: syntax=yaml ts=2 sw=2 et sr softtabstop=2 autoindent
