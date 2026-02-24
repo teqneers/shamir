@@ -8,6 +8,7 @@ use Symfony\Component\Console\Helper\QuestionHelper;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
+use Symfony\Component\Console\Output\ConsoleOutputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Question\Question;
 use TQ\Shamir\Secret;
@@ -53,6 +54,14 @@ class ShareCommand extends Command
 
         if ($secret === null) {
             $secret = $input->getArgument('secret');
+            if (!empty($secret)) {
+                $errorOutput = $output instanceof ConsoleOutputInterface ? $output->getErrorOutput() : $output;
+                $errorOutput->writeln(
+                    '<comment>Warning: passing the secret as a command argument is insecure. '
+                    .'The secret may be visible to other users via process listings (e.g. `ps aux`). '
+                    .'Use --file, STDIN, or the interactive prompt instead.</comment>'
+                );
+            }
         }
 
         if (empty($secret)) {

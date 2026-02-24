@@ -40,7 +40,7 @@ class Secret
      *
      * @return  Generator|null The old random generator if $returnOld is true
      */
-    public static function setRandomGenerator(Generator $randomGenerator = null, $returnOld = true)
+    public static function setRandomGenerator(?Generator $randomGenerator = null, $returnOld = true)
     {
         if ($returnOld) {
             $oldRandomGenerator = self::getRandomGenerator();
@@ -91,7 +91,7 @@ class Secret
      *
      * @return  Algorithm|null The old algorithm if $returnOld is true
      */
-    public static function setAlgorithm(Algorithm $algorithm = null, $returnOld = true): ?Algorithm
+    public static function setAlgorithm(?Algorithm $algorithm = null, $returnOld = true): ?Algorithm
     {
         if ($returnOld) {
             $oldAlgorithm = self::getAlgorithm();
