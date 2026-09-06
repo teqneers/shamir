@@ -1,0 +1,18 @@
+# https://docs.codecov.com/docs/codecov-yaml
+#
+# Statuses are informational so Codecov reports the number without failing pull
+# requests. Worth revisiting once the figure is a fair reflection of the suite:
+# src/Console is exercised by CliTest through a subprocess, which the coverage
+# driver cannot observe, so those two classes currently count as 0%.
+coverage:
+  status:
+    project:
+      default:
+        informational: true
+    patch:
+      default:
+        informational: true
+
+comment:
+  layout: "condensed_header, diff, files"
+  require_changes: true

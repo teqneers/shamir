@@ -38,9 +38,6 @@ jobs:
     steps:
       - name: checkout project
         uses: actions/checkout@v7
-        with:
-          # needed by scrutinizer
-          fetch-depth: 2
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
@@ -48,8 +45,8 @@ jobs:
           php-version: ${{ matrix.php-version }}
           extensions: bcmath
           tools: composer:v2
-          # needed by PHPUnit code coverage
-          coverage: pcov
+          # no coverage service is wired up any more, so skip the driver
+          coverage: none
 
       - name: Validate composer.json
         run: composer validate --no-check-lock
@@ -69,26 +66,85 @@ jobs:
       - name: Install dependencies
         run: composer update --no-progress --prefer-dist ${{ matrix.dependencies == 'lowest' && '--prefer-lowest' || '' }}
 
-      # Run phpunit with code coverage
       - name: PHPUnit Tests
-        run: vendor/bin/phpunit --coverage-clover=coverage.clover
+        run: vendor/bin/phpunit
 
-      # Uploading reports for analysis. One upload is enough - the matrix runs the
-      # same suite eight times, and a coverage service outage must not fail the build.
+  coverage:
+    runs-on: ubuntu-latest
+    name: Coverage
+    permissions:
+      contents: read
+      # lets the Codecov upload authenticate over OIDC instead of a stored token
+      id-token: write
+    steps:
+      - name: checkout project
+        uses: actions/checkout@v7
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.4"
+          extensions: bcmath
+          tools: composer:v2
+          coverage: pcov
+
+      - name: Install dependencies
+        run: composer update --no-progress --prefer-dist
+
+      # Note: CliTest drives bin/shamir.php in a subprocess, so nothing it exercises
+      # in src/Console is visible to the coverage driver running here. Those two
+      # classes therefore report 0% despite being tested end to end.
+      - name: PHPUnit with coverage
+        run: vendor/bin/phpunit --coverage-clover=coverage.xml
+
+      # Runs in its own job on purpose: a Codecov outage should be visible rather
+      # than silently swallowed, but it must not turn the test matrix red.
       #
-      # ocular is installed into a throwaway directory rather than required in
-      # composer.json on purpose: scrutinizer/ocular caps symfony/console at ^6.0,
-      # which silently prevented the matrix from ever resolving the symfony/console
-      # ^7.0 we claim to support. Resolving it in its own tree keeps that cap off
-      # this package. The published ocular.phar is not a usable alternative - it sits
-      # behind a Cloudflare challenge and answers 403 to any scripted download.
-      - name: Upload code-coverage to scrutinizer
-        if: matrix.php-version == '8.4' && matrix.dependencies == 'highest'
-        continue-on-error: true
-        run: |
-          mkdir -p "${{ runner.temp }}/ocular"
-          composer --working-dir="${{ runner.temp }}/ocular" require scrutinizer/ocular:dev-master --no-progress --no-interaction
-          "${{ runner.temp }}/ocular/vendor/bin/ocular" code-coverage:upload --format=php-clover coverage.clover
+      # Authenticates over OIDC rather than a CODECOV_TOKEN secret. The repository
+      # lives in an organisation, where a stored upload token would have to be
+      # created and rotated by an owner; OIDC needs nothing but the id-token
+      # permission above. Pull requests from forks cannot mint an OIDC token, and
+      # fall back to Codecov's tokenless path, which supports exactly that case.
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v7
+        with:
+          files: coverage.xml
+          use_oidc: true
+          fail_ci_if_error: true
+
+  static-analysis:
+    runs-on: ubuntu-latest
+    name: PHPStan
+    steps:
+      - name: checkout project
+        uses: actions/checkout@v7
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.4"
+          extensions: bcmath
+          tools: composer:v2
+          coverage: none
+
+      - name: Get composer cache directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-dir)" >> $GITHUB_OUTPUT
+
+      - name: Cache composer dependencies
+        uses: actions/cache@v6
+        with:
+            path: ${{ steps.composer-cache.outputs.dir }}
+            key: ${{ runner.os }}-composer-phpstan-${{ hashFiles('composer.json') }}
+            restore-keys: ${{ runner.os }}-composer-
+
+      - name: Install dependencies
+        run: composer update --no-progress --prefer-dist
+
+      # PHPStan needs more than PHP's default 128M; set it explicitly rather than
+      # depending on whatever memory_limit the runner's ini happens to carry.
+      - name: PHPStan
+        run: vendor/bin/phpstan analyse --no-progress --memory-limit=512M
 
 
 # vim: syntax=yaml ts=2 sw=2 et sr softtabstop=2 autoindent

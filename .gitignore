@@ -13,6 +13,10 @@ docker/.env
 phpunit
 phpunit.xml
 coverage.clover
+coverage.xml
+
+phpstan.neon
+.phpstan.cache/
 
 infection.json
 infection*.log

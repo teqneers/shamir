@@ -47,7 +47,7 @@ class Shamir implements Algorithm, RandomGeneratorAware
     /**
      * Prime number has to be greater than the maximum number of shares possible
      *
-     * @var float
+     * @var int
      */
     protected $prime = 257;
 
@@ -75,14 +75,14 @@ class Shamir implements Algorithm, RandomGeneratorAware
     /**
      * The random generator
      *
-     * @var Generator
+     * @var Generator|null
      */
     protected $randomGenerator;
 
     /**
      * Maximum number of shares required
      *
-     * @var float
+     * @var int
      */
     protected $maxShares = 3;
 
@@ -220,7 +220,10 @@ class Shamir implements Algorithm, RandomGeneratorAware
     {
         $modulo = bcmod($number, $this->prime);
 
-        return ($modulo < 0) ? bcadd($modulo, $this->prime) : $modulo;
+        // bcmath yields numeric strings. Every value here is bounded by the prime
+        // (at most 72057594037928017), so it fits an int - and callers rely on that,
+        // e.g. the strict `$temp === 0` test in reverseCoefficients().
+        return (int)(($modulo < 0) ? bcadd($modulo, $this->prime) : $modulo);
     }
 
     /**
@@ -355,10 +358,10 @@ class Shamir implements Algorithm, RandomGeneratorAware
             $base10 = $numberInput;
         }
         if ($base10 < strlen($toBaseInput)) {
-            return $toBase[$base10];
+            return $toBase[(int)$base10];
         }
         while ($base10 !== '0') {
-            $retVal = $toBase[bcmod($base10, $toLen)].$retVal;
+            $retVal = $toBase[(int)bcmod($base10, $toLen)].$retVal;
             $base10 = bcdiv($base10, $toLen, 0);
         }
 

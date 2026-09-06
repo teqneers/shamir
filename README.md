@@ -2,8 +2,7 @@ Shamir's Secret Sharing in PHP
 ==============================
 
 Build status: [![CI](https://github.com/teqneers/shamir/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/teqneers/shamir/actions/workflows/ci.yml)
-[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/teqneers/shamir/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/teqneers/shamir/?branch=master)
-[![Code Coverage](https://scrutinizer-ci.com/g/teqneers/shamir/badges/coverage.png?b=master)](https://scrutinizer-ci.com/g/teqneers/shamir/?branch=master)
+[![codecov](https://codecov.io/gh/teqneers/shamir/branch/master/graph/badge.svg)](https://codecov.io/gh/teqneers/shamir)
 
 Project information: [![Latest Stable Version](https://img.shields.io/packagist/v/teqneers/shamir.svg?style=flat)](https://packagist.org/packages/teqneers/shamir)
 [![PHP Version](https://img.shields.io/packagist/dependency-v/teqneers/shamir/php.svg?style=flat)](https://packagist.org/packages/teqneers/shamir)

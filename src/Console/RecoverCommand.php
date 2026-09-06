@@ -33,7 +33,7 @@ class RecoverCommand extends Command
         /** @var array $shares */
         $shares = $input->getArgument('shares');
         if (empty($shares)) {
-            /** @var QuestionHelper $dialog */
+            /** @var QuestionHelper $helper */
             $helper   = $this->getHelper('question');
             $question = new Question('<question>Shared secret</question> <comment>[empty to stop]</comment>: ');
             $shares   = [];

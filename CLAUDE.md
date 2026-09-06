@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 PHP library implementing Shamir's Secret Sharing algorithm. Splits a secret into `N` shares where any `threshold` number of shares can reconstruct the original. Also provides a CLI tool via `bin/shamir.php`.
 
-**Requirements:** PHP >= 8.1, `ext-bcmath` (required), `ext-openssl` (optional, better randomness)
+**Requirements:** PHP >= 8.2, `ext-bcmath` (required), `ext-openssl` (optional, better randomness)
 
 ## Commands
 
@@ -20,8 +20,8 @@ vendor/bin/phpunit
 # Run a single test file
 vendor/bin/phpunit tests/SecretTest.php
 
-# Run tests with coverage
-vendor/bin/phpunit --coverage-clover=coverage.clover
+# Static analysis (level 4, config in phpstan.neon.dist)
+vendor/bin/phpstan analyse --memory-limit=512M
 
 # Test with lowest-compatible dependency versions
 composer update --prefer-lowest && vendor/bin/phpunit
@@ -40,4 +40,6 @@ The algorithm encodes secrets using a custom base-45 alphabet (`0-9a-z.,:;-+*#%`
 
 ## CI
 
-GitHub Actions (`.github/workflows/ci.yml`) runs a matrix of PHP 8.1–8.4 × `--prefer-lowest` / `--prefer-dist`. Coverage is reported to Scrutinizer and Code Climate.
+GitHub Actions (`.github/workflows/ci.yml`) runs two jobs: a matrix of PHP 8.2–8.5 × lowest/highest dependencies, and a PHPStan pass. There is no external coverage or quality service - Scrutinizer and Code Climate were both removed after their pinned toolchains stopped installing.
+
+`tests/LegacyShareTest.php` guards the share format against change, using fixtures captured from releases 1.1.0 and 2.0.1. A failure there means previously issued shares can no longer be recovered.

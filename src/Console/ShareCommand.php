@@ -64,7 +64,7 @@ class ShareCommand extends Command
         }
 
         if (empty($secret)) {
-            /** @var QuestionHelper $dialog */
+            /** @var QuestionHelper $helper */
             $helper = $this->getHelper('question');
 
             $question = new Question('<question>The secret to share</question>: ');
