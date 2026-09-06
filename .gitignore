@@ -9,8 +9,10 @@ vendor/
 docker/.env
 
 .phpunit.result.cache
+.phpunit.cache/
 phpunit
 phpunit.xml
+coverage.clover
 
 infection.json
 infection*.log
