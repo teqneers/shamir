@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/10.1/phpunit.xsd"
+         xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
          backupGlobals="false"
          backupStaticProperties="false"
          displayDetailsOnTestsThatTriggerDeprecations="true"
          colors="true"
-         cacheDirectory="/app/.cache/phpunit"
+         cacheDirectory=".phpunit.cache"
          processIsolation="false"
          stopOnFailure="false"
          bootstrap="vendor/autoload.php"
