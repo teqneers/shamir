@@ -13,7 +13,28 @@ class CliTest extends TestCase
 
     protected $descriptorSpec;
 
-    protected static $cmd = __DIR__.'/../bin/shamir.php';
+    /**
+     * The CLI under test, invoked through a pinned interpreter
+     *
+     * The assertions below compare the command's stdout byte for byte, so they
+     * are only meaningful if nothing else can write there. On the CLI SAPI
+     * display_errors defaults to stdout, which means a deprecation raised by an
+     * older symfony/console lands in the middle of the output and fails these
+     * tests for reasons that have nothing to do with this library - and whether
+     * that happens depends on the php.ini of whoever runs the suite.
+     *
+     * Pinning PHP_BINARY (rather than relying on the shebang's `env php`) and
+     * routing any remaining diagnostics to stderr makes the contract explicit.
+     * Deprecations from this library's own code are still reported, by PHPUnit,
+     * which is the right place for them.
+     */
+    protected static function cmd(): string
+    {
+        return escapeshellarg(PHP_BINARY)
+               .' -d error_reporting='.(E_ALL & ~E_DEPRECATED & ~E_USER_DEPRECATED)
+               .' -d display_errors=stderr '
+               .escapeshellarg(__DIR__.'/../bin/shamir.php');
+    }
 
     protected function setUp(): void
     {
@@ -44,16 +65,16 @@ class CliTest extends TestCase
     public static function provideUsage(): array
     {
         return [
-            [self::$cmd, '.*Usage:.*'],
-            [self::$cmd, '.*Available commands:.*'],
-            [self::$cmd.' help', '.*Usage:.*'],
-            [self::$cmd.' -h', '.*Usage:.*'],
-            [self::$cmd.' --help', '.*Usage:.*'],
-            [self::$cmd.' list', '.*Usage:.*'],
-            [self::$cmd.' list', '.*Available commands:.*'],
-            [self::$cmd.' list', '.*Available commands:.*'],
-            [self::$cmd.' help shamir:share', '.*Create a shared secret.*'],
-            [self::$cmd.' help shamir:recover', '.*Recover a shared secret.*'],
+            [self::cmd(), '.*Usage:.*'],
+            [self::cmd(), '.*Available commands:.*'],
+            [self::cmd().' help', '.*Usage:.*'],
+            [self::cmd().' -h', '.*Usage:.*'],
+            [self::cmd().' --help', '.*Usage:.*'],
+            [self::cmd().' list', '.*Usage:.*'],
+            [self::cmd().' list', '.*Available commands:.*'],
+            [self::cmd().' list', '.*Available commands:.*'],
+            [self::cmd().' help shamir:share', '.*Create a shared secret.*'],
+            [self::cmd().' help shamir:recover', '.*Recover a shared secret.*'],
         ];
     }
 
@@ -69,7 +90,7 @@ class CliTest extends TestCase
 
     public function testWrongCommand(): void
     {
-        $ret = $this->execute(self::$cmd.' quatsch');
+        $ret = $this->execute(self::cmd().' quatsch');
 
         self::assertEquals(1, $ret['ret']);
         self::assertSame('', $ret['std']);
@@ -78,7 +99,7 @@ class CliTest extends TestCase
 
     public function testUsageQuiet(): void
     {
-        $ret = $this->execute(self::$cmd.' help -q');
+        $ret = $this->execute(self::cmd().' help -q');
 
         self::assertEquals(0, $ret['ret'], 'Non zero return code: '.var_export($ret, true));
         self::assertSame('', $ret['std']);
@@ -87,7 +108,7 @@ class CliTest extends TestCase
 
     public function testVersion(): void
     {
-        $ret = $this->execute(self::$cmd.' -V');
+        $ret = $this->execute(self::cmd().' -V');
 
         self::assertEquals(0, $ret['ret']);
         self::assertMatchesRegularExpression('(Shamir\'s Shared Secret CLI.*)', $ret['std']);
@@ -95,7 +116,7 @@ class CliTest extends TestCase
 
     public function testFileInput(): void
     {
-        $ret = $this->execute(self::$cmd.' shamir:share -f tests/secret.txt');
+        $ret = $this->execute(self::cmd().' shamir:share -f tests/secret.txt');
         self::assertEquals(0, $ret['ret'], 'Non zero return code: '.var_export($ret, true));
         self::assertMatchesRegularExpression('(10201.*)', $ret['std']);
         self::assertMatchesRegularExpression('(10202.*)', $ret['std']);
@@ -104,7 +125,7 @@ class CliTest extends TestCase
 
     public function testStandardInput(): void
     {
-        $ret = $this->execute('echo -n "Share my secret" | '.self::$cmd.' shamir:share');
+        $ret = $this->execute('echo -n "Share my secret" | '.self::cmd().' shamir:share');
         self::assertEquals(0, $ret['ret'], 'Non zero return code: '.var_export($ret, true));
         self::assertMatchesRegularExpression('(10201.*)', $ret['std']);
         self::assertMatchesRegularExpression('(10202.*)', $ret['std']);

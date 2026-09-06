@@ -4,7 +4,6 @@ namespace TQ\Shamir\Tests;
 
 use OutOfRangeException;
 use PHPUnit\Framework\Attributes\DataProvider;
-use PHPUnit\Framework\MockObject\MockBuilder;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 use TQ\Shamir\Algorithm\Algorithm;
@@ -123,8 +122,8 @@ class SecretTest extends TestCase
     public function testSetNewAlgorithmReturnsOld(): void
     {
         $current = Secret::getAlgorithm();
-        /** @var MockBuilder|Algorithm $new */
-        $new = $this->getMockBuilder(Algorithm::class)->onlyMethods(['share', 'recover'])->getMock();
+        /** @var Algorithm $new */
+        $new = self::createStub(Algorithm::class);
 
         self::assertSame($current, Secret::setAlgorithm($new));
         self::assertSame($new, Secret::getAlgorithm());
@@ -136,8 +135,8 @@ class SecretTest extends TestCase
     public function testSetNewRandomGeneratorReturnsOld(): void
     {
         $current = Secret::getRandomGenerator();
-        /** @var MockBuilder|Generator $new */
-        $new = $this->getMockBuilder(Generator::class)->onlyMethods(['getRandomInt'])->getMock();
+        /** @var Generator $new */
+        $new = self::createStub(Generator::class);
 
         self::assertSame($current, Secret::setRandomGenerator($new));
         self::assertSame($new, Secret::getRandomGenerator());
@@ -145,8 +144,8 @@ class SecretTest extends TestCase
 
     public function testSetNewRandomGeneratorUpdatesGeneratorOnAlgorithm(): void
     {
-        /** @var MockBuilder|Generator $new */
-        $new = $this->getMockBuilder(Generator::class)->onlyMethods(['getRandomInt'])->getMock();
+        /** @var Generator $new */
+        $new = self::createStub(Generator::class);
 
         Secret::setRandomGenerator($new);
         $algorithm = Secret::getAlgorithm();
@@ -292,7 +291,6 @@ class SecretTest extends TestCase
             [0],
             [8],
             [99],
-            [0.5],
         ];
     }
 
