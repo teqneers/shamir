@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1.3-labs
-ARG PHP_VERSION=8.1
+ARG PHP_VERSION=8.4
 
 FROM php:${PHP_VERSION}-cli
 
