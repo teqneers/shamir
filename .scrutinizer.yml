@@ -9,10 +9,14 @@ tools:
   external_code_coverage:
     timeout: 600
   php_mess_detector: true
+  # Disabled because Scrutinizer's phpcs-run cannot install its own tooling any
+  # more: it pins squizlabs/php_codesniffer to exactly 3.7.1, and Composer now
+  # refuses that version over GHSA-hmqg-cxww-wqhq (high, fixed in 3.13.6). The
+  # install aborts, phpcs-run exits 127, and the whole inspection is reported as
+  # failed. That pin lives in Scrutinizer's sandbox, so nothing here can raise it.
+  # It only ever checked PSR1; re-enable if Scrutinizer updates the pin.
   php_code_sniffer:
-    enabled: true
-    config:
-      standard: psr1
+    enabled: false
   #php_code_coverage: true
   php_pdepend: true
   php_loc:
