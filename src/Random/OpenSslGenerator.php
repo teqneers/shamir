@@ -54,8 +54,10 @@ class OpenSslGenerator implements Generator
      */
     public function getRandomInt()
     {
+        // openssl_random_pseudo_bytes() returns a string and throws on failure as
+        // of PHP 8.0, so there is no false to test for on any supported version.
         $random = openssl_random_pseudo_bytes($this->bytes, $isSourceStrong);
-        if ($random === false || ($this->forceStrong && $isSourceStrong !== true)) {
+        if ($this->forceStrong && $isSourceStrong !== true) {
             throw new RuntimeException(
                 'Random number generator algorithm didn\'t used "cryptographically strong" method.'
             );

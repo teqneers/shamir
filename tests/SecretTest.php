@@ -122,7 +122,6 @@ class SecretTest extends TestCase
     public function testSetNewAlgorithmReturnsOld(): void
     {
         $current = Secret::getAlgorithm();
-        /** @var Algorithm $new */
         $new = self::createStub(Algorithm::class);
 
         self::assertSame($current, Secret::setAlgorithm($new));
@@ -135,7 +134,6 @@ class SecretTest extends TestCase
     public function testSetNewRandomGeneratorReturnsOld(): void
     {
         $current = Secret::getRandomGenerator();
-        /** @var Generator $new */
         $new = self::createStub(Generator::class);
 
         self::assertSame($current, Secret::setRandomGenerator($new));
@@ -144,7 +142,6 @@ class SecretTest extends TestCase
 
     public function testSetNewRandomGeneratorUpdatesGeneratorOnAlgorithm(): void
     {
-        /** @var Generator $new */
         $new = self::createStub(Generator::class);
 
         Secret::setRandomGenerator($new);

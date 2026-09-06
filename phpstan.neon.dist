@@ -1,0 +1,40 @@
+parameters:
+    level: 4
+
+    paths:
+        - src
+        - tests
+        - bin
+
+    # Level 5 currently reports 30 further problems, all of them argument.type in
+    # Shamir.php: integers passed to bcmath functions that declare string
+    # parameters. PHP coerces those safely, so raising the level is a mechanical
+    # pass of (string) casts through the arithmetic rather than a bug hunt. Worth
+    # doing on its own, with the share-format fixtures in LegacyShareTest as the
+    # safety net - a wrong cast there would change the encoding and fail that test.
+
+    ignoreErrors:
+        # bin/shamir.php has to work across the whole symfony/console range this
+        # package allows, and Application::add() (removed in 8.0) and addCommand()
+        # (added in 7.4) never both exist. Analysis runs against one installed
+        # version, so the other branch always looks impossible - these two reports
+        # are the shim doing its job.
+        #
+        # Matched on the exact messages rather than on the identifiers alone: an
+        # identifier-wide ignore would also swallow a genuine undefined method call
+        # anywhere in the file.
+        #
+        # reportUnmatched is off for both because which one fires depends on the
+        # installed major. Against symfony/console 8 the add() call is reported as
+        # undefined; against 6.4 the method_exists() check is always false, so the
+        # addCommand() branch is dead code and never reported at all. Exactly one
+        # matches either way, and an unmatched-ignore error would otherwise fail the
+        # analysis on the lowest supported dependency set.
+        -
+            message: '#^Call to an undefined method Symfony\\Component\\Console\\Application::(add|addCommand)\(\)\.$#'
+            path: bin/shamir.php
+            reportUnmatched: false
+        -
+            message: '#^Call to function method_exists\(\) with Symfony\\Component\\Console\\Application and ''addCommand'' will always evaluate to (true|false)\.$#'
+            path: bin/shamir.php
+            reportUnmatched: false
