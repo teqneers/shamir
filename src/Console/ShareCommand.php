@@ -55,8 +55,7 @@ class ShareCommand extends Command
         if ($secret === null) {
             $secret = $input->getArgument('secret');
             if (!empty($secret)) {
-                $errorOutput = $output instanceof ConsoleOutputInterface ? $output->getErrorOutput() : $output;
-                $errorOutput->writeln(
+                $this->errorOutput($output)->writeln(
                     '<comment>Warning: passing the secret as a command argument is insecure. '
                     .'The secret may be visible to other users via process listings (e.g. `ps aux`). '
                     .'Use --file, STDIN, or the interactive prompt instead.</comment>'
@@ -103,6 +102,14 @@ class ShareCommand extends Command
             $threshold = $input->getOption('threshold');
         }
 
+        // Both the interactive prompt and --no-interaction can leave us without a
+        // secret; without this the null reaches Secret::share() as a TypeError.
+        if (!is_string($secret) || $secret === '') {
+            $this->errorOutput($output)->writeln('<error>ERROR: no secret given.</error>');
+
+            return Command::FAILURE;
+        }
+
         $shared = Secret::share($secret, $shares, $threshold);
 
         /** @var FormatterHelper $formatter */
@@ -141,9 +148,26 @@ class ShareCommand extends Command
                 while (!feof(STDIN)) {
                     $secret .= fread(STDIN, 1024);
                 }
+
+                // A STDIN that is already at EOF - cron, CI, a pipeline that
+                // produced nothing, `docker run` without -t, `< /dev/null` -
+                // still selects as readable but yields no bytes. Returning ''
+                // here would read as "the secret is an empty string" and mask
+                // the secret argument, so report "nothing on STDIN" instead.
+                if ($secret === '') {
+                    $secret = null;
+                }
             }
         }
 
         return $secret;
+    }
+
+    /**
+     * Returns the stream to write diagnostics to, keeping them out of STDOUT
+     */
+    protected function errorOutput(OutputInterface $output): OutputInterface
+    {
+        return $output instanceof ConsoleOutputInterface ? $output->getErrorOutput() : $output;
     }
 }

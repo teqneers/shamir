@@ -131,4 +131,56 @@ class CliTest extends TestCase
         self::assertMatchesRegularExpression('(10202.*)', $ret['std']);
         self::assertMatchesRegularExpression('(10203.*)', $ret['std']);
     }
+
+    /**
+     * The secret argument must survive a STDIN that is at EOF rather than a terminal
+     *
+     * This is the documented `shamir:share "..."` usage running anywhere STDIN is
+     * not interactive - cron, CI, `docker run` without -t. Such a STDIN selects as
+     * readable but yields nothing, which used to be read as an empty secret, hide
+     * the argument and end in a TypeError out of Secret::share().
+     */
+    public function testSecretArgumentIsUsedWhenStandardInputIsAtEof(): void
+    {
+        $ret = $this->execute(self::cmd().' shamir:share "Share my secret" < /dev/null');
+
+        self::assertEquals(0, $ret['ret'], 'Non zero return code: '.var_export($ret, true));
+        self::assertStringNotContainsString('Fatal error', $ret['err']);
+        self::assertMatchesRegularExpression('(10201.*)', $ret['std']);
+        self::assertMatchesRegularExpression('(10202.*)', $ret['std']);
+        self::assertMatchesRegularExpression('(10203.*)', $ret['std']);
+        // the argument is still insecure, so the warning has to reach STDERR
+        self::assertStringContainsString('insecure', $ret['err']);
+    }
+
+    /**
+     * A share created from the argument has to round-trip back to the secret
+     */
+    public function testSecretArgumentRoundTrip(): void
+    {
+        $shared = $this->execute(self::cmd().' shamir:share -s 3 -t 2 "Share my secret" < /dev/null');
+        self::assertEquals(0, $shared['ret'], 'Non zero return code: '.var_export($shared, true));
+
+        $keys = preg_split('(\s+)', trim($shared['std']), -1, PREG_SPLIT_NO_EMPTY);
+        self::assertCount(3, $keys);
+
+        $ret = $this->execute(
+            self::cmd().' shamir:recover '.escapeshellarg($keys[0]).' '.escapeshellarg($keys[2]).' < /dev/null'
+        );
+
+        self::assertEquals(0, $ret['ret'], 'Non zero return code: '.var_export($ret, true));
+        self::assertStringContainsString('Share my secret', $ret['std']);
+    }
+
+    /**
+     * Without a secret from any source the command has to fail, not crash
+     */
+    public function testMissingSecretFailsWithoutFatalError(): void
+    {
+        $ret = $this->execute(self::cmd().' shamir:share --no-interaction < /dev/null');
+
+        self::assertEquals(1, $ret['ret'], 'Expected a failure exit code: '.var_export($ret, true));
+        self::assertStringNotContainsString('Fatal error', $ret['err']);
+        self::assertMatchesRegularExpression('(.*no secret given.*)', $ret['err']);
+    }
 }
