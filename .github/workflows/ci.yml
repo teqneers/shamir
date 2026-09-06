@@ -76,15 +76,19 @@ jobs:
       # Uploading reports for analysis. One upload is enough - the matrix runs the
       # same suite eight times, and a coverage service outage must not fail the build.
       #
-      # ocular is fetched as a phar rather than required in composer.json on purpose:
-      # scrutinizer/ocular caps symfony/console at ^6.0, which silently prevented the
-      # matrix from ever resolving the symfony/console ^7.0 we claim to support.
+      # ocular is installed into a throwaway directory rather than required in
+      # composer.json on purpose: scrutinizer/ocular caps symfony/console at ^6.0,
+      # which silently prevented the matrix from ever resolving the symfony/console
+      # ^7.0 we claim to support. Resolving it in its own tree keeps that cap off
+      # this package. The published ocular.phar is not a usable alternative - it sits
+      # behind a Cloudflare challenge and answers 403 to any scripted download.
       - name: Upload code-coverage to scrutinizer
         if: matrix.php-version == '8.4' && matrix.dependencies == 'highest'
         continue-on-error: true
         run: |
-          wget -q https://scrutinizer-ci.com/ocular.phar
-          php ocular.phar code-coverage:upload --format=php-clover coverage.clover
+          mkdir -p "${{ runner.temp }}/ocular"
+          composer --working-dir="${{ runner.temp }}/ocular" require scrutinizer/ocular:dev-master --no-progress --no-interaction
+          "${{ runner.temp }}/ocular/vendor/bin/ocular" code-coverage:upload --format=php-clover coverage.clover
 
 
 # vim: syntax=yaml ts=2 sw=2 et sr softtabstop=2 autoindent
