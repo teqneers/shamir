@@ -1,12 +1,14 @@
 Shamir's Secret Sharing in PHP
 ==============================
 
-Build status: [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/teqneers/shamir/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/teqneers/shamir/?branch=master)
+Build status: [![CI](https://github.com/teqneers/shamir/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/teqneers/shamir/actions/workflows/ci.yml)
+[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/teqneers/shamir/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/teqneers/shamir/?branch=master)
 [![Code Coverage](https://scrutinizer-ci.com/g/teqneers/shamir/badges/coverage.png?b=master)](https://scrutinizer-ci.com/g/teqneers/shamir/?branch=master)
-[![Code Climate](https://codeclimate.com/github/teqneers/shamir/badges/gpa.svg)](https://codeclimate.com/github/teqneers/shamir)
 
-Project information: [![License](https://img.shields.io/github/license/teqneers/shamir.svg?style=flat)](https://img.shields.io/github/license/teqneers/shamir.svg?style=flat)
-[![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/teqneers/shamir.svg?style=flat)]((https://img.shields.io/github/languages/code-size/teqneers/shamir.svg?style=flat))
+Project information: [![Latest Stable Version](https://img.shields.io/packagist/v/teqneers/shamir.svg?style=flat)](https://packagist.org/packages/teqneers/shamir)
+[![PHP Version](https://img.shields.io/packagist/dependency-v/teqneers/shamir/php.svg?style=flat)](https://packagist.org/packages/teqneers/shamir)
+[![Total Downloads](https://img.shields.io/packagist/dt/teqneers/shamir.svg?style=flat)](https://packagist.org/packages/teqneers/shamir)
+[![License](https://img.shields.io/github/license/teqneers/shamir.svg?style=flat)](LICENSE)
 
 This is Shamir's Shared Secret implementation in PHP. It allows you to create shared secrets using the PHP classes or the CLI interface.
 
@@ -25,7 +27,7 @@ Usage
 
 ```bash
 # bin/shamir.php
-Shamir's Shared Secret CLI 2.0.0
+Shamir's Shared Secret CLI 2.1.0
 
 Usage:
   command [options] [arguments]
@@ -121,7 +123,29 @@ var_dump(Secret::recover(array_slice($shares, 1, 3)));
 Requirements
 ============
 
-PHP 8.2.0 or above
+PHP 8.2.0 or above, with the `bcmath` extension. The `openssl` extension is optional
+and provides an alternative random generator.
+
+Older PHP versions
+------------------
+
+Shares are portable across every release of this library: a share created in 2015
+still opens with the current code, and a share created today still opens on a PHP 7.2
+server running 1.1.0. So if a machine cannot run the latest release, use the newest
+one it supports - the secrets remain recoverable either way.
+
+| Release | PHP           | symfony/console          |
+|---------|---------------|--------------------------|
+| 2.1.x   | 8.2 and above | ^6.4.3 \| ^7.0 \| ^8.0   |
+| 2.0.x   | 8.1 and above | ^5.0 \| ^6.0 \| ^7.0     |
+| 1.1.x   | 7.2 up to 8.1 | ^2.0 \| ^3.0 \| ^4.0 \| ^5.0 |
+
+`composer require teqneers/shamir` resolves this automatically - an old server simply
+gets an older release.
+
+This is not a promise on paper: the test suite recovers shares captured from 1.1.0 and
+2.0.1, and asserts that today's encoder still emits byte-identical output for fixed
+input, so a change to the share format cannot pass CI unnoticed.
 
 Integrations
 ============
