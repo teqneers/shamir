@@ -11,6 +11,7 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\ConsoleOutputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Question\Question;
+use RuntimeException;
 use TQ\Shamir\Secret;
 use UnexpectedValueException;
 
@@ -50,7 +51,13 @@ class ShareCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $secret = $this->readFile($input, $output);
+        try {
+            $secret = $this->readFile($input, $output);
+        } catch (RuntimeException $e) {
+            $this->errorOutput($output)->writeln('<error>ERROR: '.$e->getMessage().'</error>');
+
+            return Command::FAILURE;
+        }
 
         if ($secret === null) {
             $secret = $input->getArgument('secret');
@@ -132,8 +139,9 @@ class ShareCommand extends Command
         if ($file !== null) {
             # check for secret in file
             if (!is_readable($file)) {
-                $output->writeln('<error>ERROR: file "'.$file.'" is not readable.');
-                exit(1);
+                // reported by execute(), which turns it into an exit code - calling
+                // exit() here would take down whatever process embeds the command
+                throw new RuntimeException('file "'.$file.'" is not readable.');
             }
 
             $secret = file_get_contents($file);
