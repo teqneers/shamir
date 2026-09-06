@@ -285,6 +285,76 @@ class SecretTest extends TestCase
         self::assertSame($shamir->getChunkSize(), $bytes);
     }
 
+    /**
+     * A fresh instance encodes single-byte chunks, which small share counts rely on
+     */
+    public function testDefaultChunkSizeIsOneByte(): void
+    {
+        self::assertSame(1, (new Shamir())->getChunkSize());
+    }
+
+    /**
+     * share() must not be influenced by what was shared or recovered before it
+     *
+     * Secret keeps one static Shamir for the whole process, so a chunk size left
+     * behind by an earlier call used to inflate every later share indefinitely -
+     * a long-running worker that once handled a 300-share request would emit
+     * oversized shares for everything afterwards.
+     */
+    public function testShareIsNotAffectedByEarlierCalls(): void
+    {
+        Secret::setAlgorithm(new Shamir(), false);
+
+        $before = Secret::share('odd', 4, 2);
+
+        // needs two bytes per chunk, which raises the chunk size on the instance
+        Secret::share('unrelated', 300, 2);
+
+        $after = Secret::share('odd', 4, 2);
+
+        // the leading character of a key encodes the chunk size in hex
+        self::assertSame(
+            $before[0][0],
+            $after[0][0],
+            'Chunk size leaked from an earlier call into a later share().'
+        );
+        self::assertSame(strlen($before[0]), strlen($after[0]), 'Share length changed between identical calls.');
+        self::assertSame('odd', Secret::recover(array_slice($after, 0, 2)));
+    }
+
+    /**
+     * recover() reads a chunk size out of the key, which must not become sticky
+     */
+    public function testRecoverDoesNotChangeLaterShares(): void
+    {
+        Secret::setAlgorithm(new Shamir(), false);
+
+        $before = Secret::share('odd', 4, 2);
+
+        $wide = Secret::share('unrelated', 300, 2);
+        Secret::recover(array_slice($wide, 0, 2));
+
+        $after = Secret::share('odd', 4, 2);
+
+        self::assertSame($before[0][0], $after[0][0], 'Chunk size leaked from recover() into a later share().');
+    }
+
+    /**
+     * An explicitly requested chunk size still has to survive a smaller share()
+     */
+    public function testExplicitChunkSizeIsKeptAcrossShare(): void
+    {
+        $shamir = new Shamir();
+        $shamir->setChunkSize(4);
+
+        // two shares would only need a single byte on their own
+        $shares = $shamir->share('secret', 2, 2);
+
+        self::assertSame(4, $shamir->getChunkSize(), 'An explicit chunk size was silently reduced.');
+        self::assertSame('4', $shares[0][0], 'The key header does not record the requested chunk size.');
+        self::assertSame('secret', (new Shamir())->recover($shares));
+    }
+
     public static function provideChunkSize(): array
     {
         return [

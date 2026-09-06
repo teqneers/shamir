@@ -62,6 +62,17 @@ class Shamir implements Algorithm, RandomGeneratorAware
     protected $chunkSize = 1;
 
     /**
+     * Chunk size explicitly requested through setChunkSize()
+     *
+     * Kept apart from $chunkSize, which also holds sizes derived from the share
+     * count or read back from a key, so only a deliberate choice is preserved
+     * across calls.
+     *
+     * @var int|null
+     */
+    protected $requestedChunkSize;
+
+    /**
      * The random generator
      *
      * @var Generator
@@ -108,15 +119,32 @@ class Shamir implements Algorithm, RandomGeneratorAware
     /**
      * Sets chunk size in bytes
      *
-     * If maximum shares have been set already, the chunk
-     * size might have been set with it. It is not possible
-     * to set a smaller size than required by shares.
+     * The size is remembered as a deliberate choice: a later share() will raise it
+     * when the number of shares needs more bytes, but never drop below it.
      *
-     * @see
+     * @see    setMaxShares()
      * @param  int  $chunkSize  Size in number of bytes
      * @throws OutOfRangeException
      */
     public function setChunkSize(int $chunkSize): Shamir
+    {
+        $this->applyChunkSize($chunkSize);
+        $this->requestedChunkSize = $chunkSize;
+
+        return $this;
+    }
+
+    /**
+     * Sets chunk size and its matching prime without recording it as a preference
+     *
+     * Used for sizes this class derives itself - from the share count when sharing,
+     * or from the key header when recovering - so that they do not linger on the
+     * instance and affect unrelated later calls.
+     *
+     * @param  int  $chunkSize  Size in number of bytes
+     * @throws OutOfRangeException
+     */
+    protected function applyChunkSize(int $chunkSize): void
     {
         $primeNumber = [1 => 257, 65537, 16777259, 4294967311, 1099511627791, 281474976710677, 72057594037928017];
 
@@ -127,10 +155,7 @@ class Shamir implements Algorithm, RandomGeneratorAware
         }
 
         $this->chunkSize = $chunkSize;
-        // if chunk size has been set already, we will only increase it, if necessary
-        $this->prime = $primeNumber[$chunkSize];
-
-        return $this;
+        $this->prime     = $primeNumber[$chunkSize];
     }
 
     /**
@@ -171,12 +196,15 @@ class Shamir implements Algorithm, RandomGeneratorAware
         // calculate how many bytes we need to represent the number of shares.
         // e.g., everything less than 256 needs only a single byte.
         $chunkSize = (int)ceil(log($max, 2) / 8);
-        // if chunk size has been set already, we will only increase it, if necessary
-        $chunkSize = max($chunkSize, $this->chunkSize);
 
-        if ($chunkSize > $this->chunkSize) {
-            $this->setChunkSize($chunkSize);
-        }
+        // Derive the size from this call alone, raised only by an explicit
+        // setChunkSize(). Carrying over whatever the previous share() or recover()
+        // happened to leave behind made the output depend on call history: a single
+        // large-share operation permanently inflated every later share() on this
+        // instance - and Secret reuses one instance for the whole process.
+        $chunkSize = max(1, $chunkSize, (int)$this->requestedChunkSize);
+
+        $this->applyChunkSize($chunkSize);
 
         $this->maxShares = $max;
 
@@ -522,7 +550,7 @@ class Shamir implements Algorithm, RandomGeneratorAware
         $key = reset($keys);
         // first we need to find out the bytes to predict threshold and sequence length
         $bytes = hexdec(substr($key, 0, 1));
-        $this->setChunkSize($bytes);
+        $this->applyChunkSize($bytes);
         // calculate the maximum length of key sequence number and threshold
         $maxBaseLength = $this->maxKeyLength($bytes);
         // define key format: bytes (hex), threshold, sequence, and key (except of bytes, all is base converted)
