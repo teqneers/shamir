@@ -33,9 +33,11 @@ class LegacyShareTest extends TestCase
 
     protected function setUp(): void
     {
-        // Secret holds one static Shamir instance whose chunk size only ever grows
-        // (see Shamir::setMaxShares()), so an earlier share() or recover() of a
-        // many-share secret changes the encoding this test would otherwise observe.
+        // Secret's algorithm and generator are process-wide statics that other test
+        // classes also write to. Starting from a known instance keeps these vectors
+        // independent of test order. Shamir::setMaxShares() no longer lets a chunk
+        // size leak between calls, so this is isolation hygiene rather than a
+        // workaround - SecretTest::testShareIsNotAffectedByEarlierCalls covers that.
         Secret::setAlgorithm(new Shamir(), false);
     }
 
