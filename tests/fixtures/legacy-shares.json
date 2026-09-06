@@ -1,0 +1,226 @@
+[
+    {
+        "description": "ascii, 3 shares, threshold 2 (chunk size 1)",
+        "createdBy": "teqneers/shamir 1.1.0 on PHP 7.4.33",
+        "secret": "Share my secret",
+        "shareCount": 3,
+        "threshold": 2,
+        "shareSequences": [
+            1,
+            2,
+            3
+        ],
+        "shares": [
+            "102012c4l5e1r3;2%5f480m1#5s0*1e311w",
+            "102022v0+2y0u5m5b2o5u0c1g3d5h043.0:",
+            "102033533095k1i1.5k1k020y0#454q4q5v"
+        ]
+    },
+    {
+        "description": "utf-8 multibyte, 5 shares, threshold 3",
+        "createdBy": "teqneers/shamir 1.1.0 on PHP 7.4.33",
+        "secret": "Lorem ünïcödé δισ قبضتهم нолюёж 問ナマ業 ✓",
+        "shareCount": 5,
+        "threshold": 3,
+        "shareSequences": [
+            1,
+            2,
+            3,
+            4,
+            5
+        ],
+        "shares": [
+            "1030117521b4a1l0z373*4n2s553r445b4a3,2.4x11160b1,460t4k141r0w2:394r0*1z0e593b2-301z0-0t3f283y2%1c0-201z4w515n0g5t4;3t1s0a3h1u3y3,5g251;3r1+",
+            "103023e1c2b5d2w0m205k0t3l4x0x2m1a4q1:0c332#0z4z1d042j3v1%0j29423,1*090z2q3y5t2a1d3%5s1m4o3t1b4*2u4r250+591.4c293g1x1w4o1h114d0e3f0#182q5029",
+            "103032k2p5o5k0k5p0;302c172y515b3i3d451;1j4u2*122n3-2o471z533p1s0#1y2r0z094h0r0#1d5n1c1k253e2f4.1t4g3p215n2l1g36211g2,0h2.1p5u0m29233s1k1#46",
+            "103044c395i4v0h4p5l2e3u1i4-520*0g0g4+1-5n0k1-0l5m450%060m454z1d0e432j1z4r1g5b4.300u4#0n1z181e2q3+070s555t1e2m371t3x1c0q4m4%044d0j2%3x480820",
+            "1030533391:312n394h3h4:495j0.0%3n1m4b0f3+1w3g324n0y3l323,3c07321-375h3z4g0i2k2f0w0;5c4i3o2#3-3%3y3j4x4l5r421#2c2a372y560x5q4v0d3w3v1n535h1n"
+        ]
+    },
+    {
+        "description": "length not a multiple of chunk size (padding)",
+        "createdBy": "teqneers/shamir 1.1.0 on PHP 7.4.33",
+        "secret": "odd",
+        "shareCount": 4,
+        "threshold": 2,
+        "shareSequences": [
+            1,
+            2,
+            3,
+            4
+        ],
+        "shares": [
+            "10201531z24",
+            "102021#1f1#",
+            "102034p0-1,",
+            "102041k0k1v"
+        ]
+    },
+    {
+        "description": "single byte secret",
+        "createdBy": "teqneers/shamir 1.1.0 on PHP 7.4.33",
+        "secret": "x",
+        "shareCount": 3,
+        "threshold": 2,
+        "shareSequences": [
+            1,
+            2,
+            3
+        ],
+        "shares": [
+            "102013z",
+            "102024-",
+            "102030d"
+        ]
+    },
+    {
+        "description": "threshold equals share count",
+        "createdBy": "teqneers/shamir 1.1.0 on PHP 7.4.33",
+        "secret": "all shares required",
+        "shareCount": 3,
+        "threshold": 3,
+        "shareSequences": [
+            1,
+            2,
+            3
+        ],
+        "shares": [
+            "103015o0+233o2x273-4+0i1i5d2o334x3-1*2#0c3#",
+            "103020k0c1j2i4;5a2e2k5h53584:17220r4q151%0q",
+            "10303410l0l313b04360:02260h3y2a07474p2w1u3n"
+        ]
+    },
+    {
+        "description": "260 shares forces chunk size 2 (prime 65537)",
+        "createdBy": "teqneers/shamir 1.1.0 on PHP 7.4.33",
+        "secret": "chunked",
+        "shareCount": 260,
+        "threshold": 2,
+        "shareSequences": [
+            1,
+            2,
+            128,
+            259,
+            260
+        ],
+        "shares": [
+            "2002001j5#vaiegie+5=",
+            "2002002p33g62f-:tz0=",
+            "200202:srhniog7qpp4=",
+            "200205ytk;j*0o6ou+;=",
+            "200205z31r4,tpu%djh="
+        ]
+    },
+    {
+        "description": "ascii, 3 shares, threshold 2 (chunk size 1)",
+        "createdBy": "teqneers/shamir 2.0.1 on PHP 8.1.34",
+        "secret": "Share my secret",
+        "shareCount": 3,
+        "threshold": 2,
+        "shareSequences": [
+            1,
+            2,
+            3
+        ],
+        "shares": [
+            "102013+4*1j4-1d383d2n5p2f2m173;212*",
+            "102020c1:0v1o0f5t472f4v252x05591.3d",
+            "102032f4l5u3-542i51273,1-2%4z0,1q3t"
+        ]
+    },
+    {
+        "description": "utf-8 multibyte, 5 shares, threshold 3",
+        "createdBy": "teqneers/shamir 2.0.1 on PHP 8.1.34",
+        "secret": "Lorem ünïcödé δισ قبضتهم нолюёж 問ナマ業 ✓",
+        "shareCount": 5,
+        "threshold": 3,
+        "shareSequences": [
+            1,
+            2,
+            3,
+            4,
+            5
+        ],
+        "shares": [
+            "10301421s2g1g1a404.56410g3d135e0f34133+481t3g2q411q1-2m2a4c5g234s3x0c3#174,3#4n4j2:2m3h0-4x5p4u323-16411y59032,172w255t0:140w0m3e4v331h3v2h",
+            "103021r3t2n264;4x0y0l4+320n3f340y5n1s0w2#4*0r104,2z0b1:0p3b4j21030+2j3;391z2+193z4:2i3p552m4b2t554n4g0s2c454k5j1f3f24003d1z0x0:4y53560a170l",
+            "10303032,304q1*2+3s1r550%1c3d3h5e3z0d5q2y311k5p0.2m3v4m5o5o203r2p1d5p3n5b5d1v4k4m4+3*575l3r0a4d3t0.1l065q37145i3w192:3c0#4%3q0l2d4%191p1q3b",
+            "10304574;3,2%3:4b1%2,4s5q5p0*0l2q3r2z1h3q1s084,3h0w0.4w015j3.140u4;3#2-1q3*0d2,0:321h2l1#2g4+3-4g483-2p0c2f1j2y2q214h415c4%3o531s4j2v5h4#50",
+            "103055k434%324-311o463k5j1#1%033%4%3h5b5j0x2n4n1637302n172+4509050a3f203s3j4j224c4#0k190d4l181k1o3a09283l1t5k393t040%2c4.1z0r3a2y3i3-0c5q01"
+        ]
+    },
+    {
+        "description": "length not a multiple of chunk size (padding)",
+        "createdBy": "teqneers/shamir 2.0.1 on PHP 8.1.34",
+        "secret": "odd",
+        "shareCount": 4,
+        "threshold": 2,
+        "shareSequences": [
+            1,
+            2,
+            3,
+            4
+        ],
+        "shares": [
+            "102013q503t",
+            "102024v2353",
+            "10203044:0z",
+            "10204191+29"
+        ]
+    },
+    {
+        "description": "single byte secret",
+        "createdBy": "teqneers/shamir 2.0.1 on PHP 8.1.34",
+        "secret": "x",
+        "shareCount": 3,
+        "threshold": 2,
+        "shareSequences": [
+            1,
+            2,
+            3
+        ],
+        "shares": [
+            "102010f",
+            "102023w",
+            "102031h"
+        ]
+    },
+    {
+        "description": "threshold equals share count",
+        "createdBy": "teqneers/shamir 2.0.1 on PHP 8.1.34",
+        "secret": "all shares required",
+        "shareCount": 3,
+        "threshold": 3,
+        "shareSequences": [
+            1,
+            2,
+            3
+        ],
+        "shares": [
+            "103015g4u544;130,134;434+49432r5s2p1v3z5p5o",
+            "10302185o0.363;123-0t5d1g0c00381o4u4n07194#",
+            "1030312500#1a5b2%4+1d093e0f1y3%1u3a54340r0m"
+        ]
+    },
+    {
+        "description": "260 shares forces chunk size 2 (prime 65537)",
+        "createdBy": "teqneers/shamir 2.0.1 on PHP 8.1.34",
+        "secret": "chunked",
+        "shareCount": 260,
+        "threshold": 2,
+        "shareSequences": [
+            1,
+            2,
+            128,
+            259,
+            260
+        ],
+        "shares": [
+            "2002001wdgk,s13fln3=",
+            "2002002j1mrv;lv4aro=",
+            "200202:uw*jylud3syq=",
+            "200205y8ljd.+cneozf=",
+            "200205zrp*kv70yvd;.="
+        ]
+    }
+]
