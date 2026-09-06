@@ -17,7 +17,13 @@
             <directory>./tests/</directory>
         </testsuite>
     </testsuites>
-    <source>
+    <!-- Deprecations raised inside vendor/ are not reported. This package
+         deliberately supports symfony/console back to 6.4.3, and those releases
+         predate PHP 8.4's implicitly-nullable deprecation, so a lowest-dependency
+         run on a current PHP reports a dozen of them from symfony/string alone.
+         They are upstream's to fix and drown out the ones that matter. Deprecations
+         triggered by this package's own code are still reported. -->
+    <source ignoreIndirectDeprecations="true">
         <include>
             <directory>./src/</directory>
         </include>

@@ -165,13 +165,27 @@ class ConsoleCommandTest extends TestCase
         self::assertSame('interactive secret', Secret::recover(array_slice($keys, 0, 2)));
     }
 
+    /**
+     * A non-numeric answer is rejected and the question asked again
+     *
+     * Asserted through the outcome rather than by expecting the validator's
+     * exception: QuestionHelper catches that and re-asks, so what finally escapes
+     * when the input runs out differs between symfony/console versions. Supplying a
+     * good answer after a bad one proves the rejection without depending on any of
+     * that - had "not a number" been accepted it would cast to 0 shares and fail.
+     */
     public function testShareRejectsANonIntegerShareCount(): void
     {
         $tester = $this->tester(new ShareCommand());
-        $tester->setInputs(['a secret', 'not a number']);
+        $tester->setInputs(['a secret', 'not a number', '4', '2']);
+        $status = $this->runCommand($tester, [], true);
 
-        $this->expectException(\UnexpectedValueException::class);
-        $this->runCommand($tester, [], true);
+        self::assertSame(Command::SUCCESS, $status);
+        self::assertStringContainsString('must be an integer', $tester->getErrorOutput());
+
+        $keys = $this->extractShares($tester->getDisplay());
+        self::assertCount(4, $keys);
+        self::assertSame('a secret', Secret::recover(array_slice($keys, 0, 2)));
     }
 
     public function testRecoverWithSharesAsArguments(): void
@@ -292,13 +306,21 @@ class ConsoleCommandTest extends TestCase
         );
     }
 
+    /**
+     * Same again for the highest-issued-number prompt
+     */
     public function testAddRejectsANonIntegerHighestNumber(): void
     {
         $keys   = $this->makeShares('bad highest', 3, 2);
         $tester = $this->tester(new AddCommand());
-        $tester->setInputs(['not a number']);
+        $tester->setInputs(['not a number', '3']);
+        $status = $this->runCommand($tester, ['existing' => [$keys[0], $keys[1]]], true);
 
-        $this->expectException(\UnexpectedValueException::class);
-        $this->runCommand($tester, ['existing' => [$keys[0], $keys[1]]], true);
+        self::assertSame(Command::SUCCESS, $status);
+        self::assertStringContainsString('must be an integer', $tester->getErrorOutput());
+
+        $new = $this->extractShares($tester->getDisplay());
+        self::assertCount(1, $new);
+        self::assertSame('bad highest', Secret::recover([$keys[2], $new[0]]));
     }
 }
