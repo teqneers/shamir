@@ -44,6 +44,7 @@ Available commands:
   help            Displays help for a command
   list            Lists commands
  shamir
+  shamir:add      Add shares to an existing shared secret
   shamir:recover  Recover a shared secret
   shamir:share    Create a shared secret
 ```
@@ -100,6 +101,18 @@ Shared secret [empty to stop]:
 
   Share my secret
 
+# add two more shares to a secret that was already split into three
+# -H is the highest share number ever issued, see "Adding shares later"
+# bin/shamir.php shamir:add -H 3 -s 2 "10201001v105s0#4r2z5e3y1w005o364v" "102023n0+5c2%57143e494#183n2,4114"
+
+  102044,532h3i265m4h1%1t054,35045e
+  102052s4d0*0y0s1%4+0;2:5d2s0i0%1w
+
+# the existing shares can come from a file instead, one per line
+# bin/shamir.php shamir:add -H 3 -f path/to/shares.txt
+
+  102060j3n593,4,485k5l424y0j3i1;3,
+
 ```
 
 PHP Examples
@@ -118,6 +131,48 @@ var_dump($shares);
 var_dump(Secret::recover(array_slice($shares, 0, 2)));
 var_dump(Secret::recover(array_slice($shares, 1, 3)));
 ```
+
+Adding shares later
+===================
+
+Further shares can be issued for a secret that has already been divided, without
+having the secret at hand. The new shares work with the existing ones, and with each
+other.
+
+```php
+use TQ\Shamir\Secret;
+
+$shares = Secret::share('Share my secret', 5, 2);   // s1 .. s5, two needed
+
+// later: two more, continuing the numbering after the five already handed out
+$more = Secret::addShares([$shares[0], $shares[3]], 2, 5);   // s6, s7
+
+Secret::recover([$shares[4], $more[0]]);            // 'Share my secret'
+Secret::recover($more);                             // 'Share my secret'
+```
+
+The same thing from the command line:
+
+```shell
+# bin/shamir.php shamir:add -H 5 -s 2 "10201..." "10202..."
+```
+
+Two things to be aware of.
+
+**It takes `threshold` existing shares**, which is by definition enough to
+reconstruct the secret. Whoever can add shares can already read the secret, so treat
+the operation as being exactly as sensitive as recovery.
+
+**The third argument is the highest share number ever issued**, and it cannot be
+worked out from the shares you pass in - those may be any subset of what was handed
+out. Understating it re-issues numbers that were used before. Because the same
+polynomial is rebuilt, such a share is byte-identical to the one already in
+circulation rather than a conflicting value, so nothing silently decodes to the wrong
+secret: combining a duplicate with its twin throws `Repeated share detected`, and
+combining it with any other share still works. The danger is operational - two people
+end up holding the same share, so there are fewer distinct shares than you think. If
+nobody knows how many were issued, re-share the secret instead.
+
 
 Requirements
 ============

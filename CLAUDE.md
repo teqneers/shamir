@@ -33,6 +33,7 @@ The library uses a **static facade + strategy pattern**:
 
 - `src/Secret.php` — Static facade; primary public API. Wraps `Shamir` with `share()` and `recover()` methods. Supports injection of custom `Algorithm` and `Generator` implementations.
 - `src/Algorithm/Shamir.php` — Core algorithm: polynomial construction over a finite field, Horner's method for evaluation, Lagrange interpolation for recovery. Uses BCMath for arbitrary-precision arithmetic.
+- `src/Algorithm/ExtendableAlgorithm.php` — optional capability interface for issuing further shares of an already divided secret (`Shamir::addShares()`); kept out of `Algorithm` so existing implementations stay valid.
 - `src/Random/` — `Generator` interface with two implementations: `PhpGenerator` (default) and `OpenSslGenerator`.
 - `src/Console/` — Symfony Console commands (`ShareCommand`, `RecoverCommand`) wired to `bin/shamir.php`.
 

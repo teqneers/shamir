@@ -173,6 +173,104 @@ class CliTest extends TestCase
     }
 
     /**
+     * shamir:add issues further shares that work with the originals
+     */
+    public function testAddCommandExtendsAnExistingSecret(): void
+    {
+        $shared = $this->execute(self::cmd().' shamir:share -s 3 -t 2 "console secret" < /dev/null');
+        self::assertEquals(0, $shared['ret'], 'Non zero return code: '.var_export($shared, true));
+        $keys = preg_split('(\s+)', trim($shared['std']), -1, PREG_SPLIT_NO_EMPTY);
+        self::assertCount(3, $keys);
+
+        $added = $this->execute(
+            self::cmd().' shamir:add -H 3 -s 2 '.escapeshellarg($keys[0]).' '.escapeshellarg($keys[1]).' < /dev/null'
+        );
+        self::assertEquals(0, $added['ret'], 'Non zero return code: '.var_export($added, true));
+        $new = preg_split('(\s+)', trim($added['std']), -1, PREG_SPLIT_NO_EMPTY);
+        self::assertCount(2, $new);
+
+        // a share never passed to shamir:add still combines with a new one
+        $recovered = $this->execute(
+            self::cmd().' shamir:recover '.escapeshellarg($keys[2]).' '.escapeshellarg($new[0]).' < /dev/null'
+        );
+        self::assertEquals(0, $recovered['ret'], 'Non zero return code: '.var_export($recovered, true));
+        self::assertStringContainsString('console secret', $recovered['std']);
+
+        // and the two new ones work on their own
+        $recovered = $this->execute(
+            self::cmd().' shamir:recover '.escapeshellarg($new[0]).' '.escapeshellarg($new[1]).' < /dev/null'
+        );
+        self::assertStringContainsString('console secret', $recovered['std']);
+    }
+
+    /**
+     * shamir:add reads the existing shares from a file
+     */
+    public function testAddCommandReadsSharesFromFile(): void
+    {
+        $shared = $this->execute(self::cmd().' shamir:share -s 3 -t 2 "from a file" < /dev/null');
+        $keys   = preg_split('(\s+)', trim($shared['std']), -1, PREG_SPLIT_NO_EMPTY);
+
+        $file = tempnam(sys_get_temp_dir(), 'shamir');
+        file_put_contents($file, $keys[0]."\n".$keys[1]."\n");
+
+        try {
+            $added = $this->execute(self::cmd().' shamir:add -H 3 -f '.escapeshellarg($file).' < /dev/null');
+            self::assertEquals(0, $added['ret'], 'Non zero return code: '.var_export($added, true));
+
+            $new       = trim($added['std']);
+            $recovered = $this->execute(
+                self::cmd().' shamir:recover '.escapeshellarg($keys[2]).' '.escapeshellarg($new).' < /dev/null'
+            );
+            self::assertStringContainsString('from a file', $recovered['std']);
+        } finally {
+            unlink($file);
+        }
+    }
+
+    /**
+     * Mistakes are reported as errors, not as stack traces
+     */
+    public function testAddCommandReportsMistakesCleanly(): void
+    {
+        $shared = $this->execute(self::cmd().' shamir:share -s 3 -t 2 "clean errors" < /dev/null');
+        $keys   = preg_split('(\s+)', trim($shared['std']), -1, PREG_SPLIT_NO_EMPTY);
+        $two    = escapeshellarg($keys[0]).' '.escapeshellarg($keys[1]);
+
+        // the highest issued number is required
+        $ret = $this->execute(self::cmd().' shamir:add --no-interaction '.$two.' < /dev/null');
+        self::assertEquals(1, $ret['ret']);
+        self::assertStringNotContainsString('Fatal error', $ret['err']);
+        self::assertMatchesRegularExpression('(.*highest issued share number is required.*)', $ret['err']);
+
+        // and it may not be lower than a share that was handed in
+        $ret = $this->execute(self::cmd().' shamir:add --no-interaction -H 1 '.$two.' < /dev/null');
+        self::assertEquals(1, $ret['ret']);
+        self::assertStringNotContainsString('Fatal error', $ret['err']);
+        self::assertMatchesRegularExpression('(.*Highest issued share number has to be at least.*)', $ret['err']);
+
+        // fewer shares than the threshold cannot work
+        $ret = $this->execute(
+            self::cmd().' shamir:add --no-interaction -H 3 '.escapeshellarg($keys[0]).' < /dev/null'
+        );
+        self::assertEquals(1, $ret['ret']);
+        self::assertStringNotContainsString('Fatal error', $ret['err']);
+    }
+
+    /**
+     * shamir:recover without any input fails cleanly rather than on a null
+     */
+    public function testRecoverWithoutSharesFailsWithoutFatalError(): void
+    {
+        $ret = $this->execute(self::cmd().' shamir:recover --no-interaction < /dev/null');
+
+        self::assertEquals(1, $ret['ret'], 'Expected a failure exit code: '.var_export($ret, true));
+        self::assertStringNotContainsString('Fatal error', $ret['err']);
+        self::assertStringNotContainsString('Deprecated', $ret['err']);
+        self::assertMatchesRegularExpression('(.*no shares given.*)', $ret['err']);
+    }
+
+    /**
      * Without a secret from any source the command has to fail, not crash
      */
     public function testMissingSecretFailsWithoutFatalError(): void
