@@ -12,6 +12,10 @@ on:
       - 'LICENSE'
       - 'example'
     branches: [ master ]
+  # allow a manual run, and catch dependency/platform rot even when nothing is pushed
+  workflow_dispatch:
+  schedule:
+    - cron: '0 5 1 * *'
 
 jobs:
   test:
@@ -21,20 +25,19 @@ jobs:
       fail-fast: false
       matrix:
         php-version: [
-            "8.1",
             "8.2",
             "8.3",
-            # also try a future version
-            "8.4"
+            "8.4",
+            "8.5"
         ]
-        composer-param: [
-            "update --no-progress --prefer-dist --prefer-lowest",
-            "update --no-progress --prefer-dist"
+        dependencies: [
+            "lowest",
+            "highest"
         ]
-    name: PHP ${{ matrix.php-version }} test
+    name: PHP ${{ matrix.php-version }} (${{ matrix.dependencies }} deps)
     steps:
       - name: checkout project
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           # needed by scrutinizer
           fetch-depth: 2
@@ -48,38 +51,44 @@ jobs:
           # needed by PHPUnit code coverage
           coverage: pcov
 
-      - name: Validate composer.json and composer.lock
-        run: composer validate
+      - name: Validate composer.json
+        run: composer validate --no-check-lock
 
       - name: Get composer cache directory
         id: composer-cache
         run: echo "dir=$(composer config cache-dir)" >> $GITHUB_OUTPUT
 
+      # composer.lock is not committed (this is a library), so key on composer.json
       - name: Cache composer dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@v6
         with:
             path: ${{ steps.composer-cache.outputs.dir }}
-            key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+            key: ${{ runner.os }}-composer-${{ matrix.php-version }}-${{ matrix.dependencies }}-${{ hashFiles('composer.json') }}
             restore-keys: ${{ runner.os }}-composer-
 
       - name: Install dependencies
-        run: composer ${{ matrix.composer-param }}
+        run: composer update --no-progress --prefer-dist ${{ matrix.dependencies == 'lowest' && '--prefer-lowest' || '' }}
 
       # Run phpunit with code coverage
       - name: PHPUnit Tests
         run: vendor/bin/phpunit --coverage-clover=coverage.clover
 
-        # Uploading reports for analysis
+      # Uploading reports for analysis. One upload is enough - the matrix runs the
+      # same suite eight times, and a coverage service outage must not fail the build.
+      #
+      # ocular is installed into a throwaway directory rather than required in
+      # composer.json on purpose: scrutinizer/ocular caps symfony/console at ^6.0,
+      # which silently prevented the matrix from ever resolving the symfony/console
+      # ^7.0 we claim to support. Resolving it in its own tree keeps that cap off
+      # this package. The published ocular.phar is not a usable alternative - it sits
+      # behind a Cloudflare challenge and answers 403 to any scripted download.
       - name: Upload code-coverage to scrutinizer
-        run: vendor/bin/ocular code-coverage:upload --format=php-clover coverage.clover
-
-      - name: Publish code coverage to Code Climate
-        uses: paambaati/codeclimate-action@v5
-        env:
-          CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
-        with:
-          coverageLocations: |
-            coverage.clover:clover
+        if: matrix.php-version == '8.4' && matrix.dependencies == 'highest'
+        continue-on-error: true
+        run: |
+          mkdir -p "${{ runner.temp }}/ocular"
+          composer --working-dir="${{ runner.temp }}/ocular" require scrutinizer/ocular:dev-master --no-progress --no-interaction
+          "${{ runner.temp }}/ocular/vendor/bin/ocular" code-coverage:upload --format=php-clover coverage.clover
 
 
 # vim: syntax=yaml ts=2 sw=2 et sr softtabstop=2 autoindent
