@@ -1,0 +1,44 @@
+[
+    {
+        "description": "known answer: ascii, 3 shares, threshold 2",
+        "createdBy": "teqneers/shamir 1.1.0 on PHP 7.4.33",
+        "secret": "Share my secret",
+        "seed": 20151123,
+        "shareCount": 3,
+        "threshold": 2,
+        "shares": [
+            "102012n4q0u3f391j5e440%515f0m1j450y",
+            "1020238164-4647262m5m1b1z2w4m0e0c4t",
+            "102033:3i3i4*552:5h181n4b042z4+262,"
+        ]
+    },
+    {
+        "description": "known answer: utf-8, 5 shares, threshold 3",
+        "createdBy": "teqneers/shamir 1.1.0 on PHP 7.4.33",
+        "secret": "ünïcödé ✓ 問ナマ",
+        "seed": 987654321,
+        "shareCount": 5,
+        "threshold": 3,
+        "shares": [
+            "103012h0+2+474y2d1u3w1*3d26210l4p0h2k3c4n0o502;0o0o0u4c",
+            "1030225020%2v4g584z5h4v3s502n4j011a3h142r4#5o2m35082r1b",
+            "103033o1q2g5t2v572b3f4z5f0*285l1d043n4c3d510*1z543%3007",
+            "103040*5n1f1r5l2a5m3d292w1g113r2t2v2:1h0;0x2s0x0y0n1;10",
+            "10305010j3s1%1c24345b2u1l0p4y4o443e1h3:123n4-531o194+3z"
+        ]
+    },
+    {
+        "description": "known answer: padding, 4 shares, threshold 2",
+        "createdBy": "teqneers/shamir 1.1.0 on PHP 7.4.33",
+        "secret": "odd",
+        "seed": 424242,
+        "shareCount": 4,
+        "threshold": 2,
+        "shares": [
+            "102014*1n5m",
+            "102021v0.32",
+            "1020347040r",
+            "102040+543;"
+        ]
+    }
+]
