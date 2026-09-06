@@ -3,7 +3,10 @@
 namespace TQ\Shamir;
 
 use OutOfBoundsException;
+use OutOfRangeException;
+use RuntimeException;
 use TQ\Shamir\Algorithm\Algorithm;
+use TQ\Shamir\Algorithm\ExtendableAlgorithm;
 use TQ\Shamir\Algorithm\RandomGeneratorAware;
 use TQ\Shamir\Algorithm\Shamir;
 use TQ\Shamir\Random\Generator;
@@ -128,5 +131,35 @@ class Secret
     public static function recover(array $keys): string
     {
         return self::getAlgorithm()->recover($keys);
+    }
+
+    /**
+     * Creates additional shares for a secret that was already divided
+     *
+     * Needs at least `threshold` of the existing shares, which is by definition
+     * enough to reconstruct the secret - so this is as sensitive an operation as
+     * recovering it. `$highestSequence` is the highest share number ever handed
+     * out for this secret; see ExtendableAlgorithm::addShares() for why it cannot
+     * be inferred from `$keys`.
+     *
+     * @param  array  $keys             At least `threshold` shares of one secret
+     * @param  int    $additional       How many further shares to create
+     * @param  int    $highestSequence  Highest share number ever issued for this secret
+     *
+     * @return array                    The additional shares
+     * @throws RuntimeException         If the algorithm cannot do this, or too few shares were given
+     * @throws OutOfRangeException      If the counts do not fit the shares supplied
+     */
+    public static function addShares(array $keys, int $additional, int $highestSequence): array
+    {
+        $algorithm = self::getAlgorithm();
+
+        if (!$algorithm instanceof ExtendableAlgorithm) {
+            throw new RuntimeException(
+                'The configured algorithm cannot add shares to an already divided secret.'
+            );
+        }
+
+        return $algorithm->addShares($keys, $additional, $highestSequence);
     }
 }

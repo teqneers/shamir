@@ -7,6 +7,7 @@ use Symfony\Component\Console\Helper\FormatterHelper;
 use Symfony\Component\Console\Helper\QuestionHelper;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\ConsoleOutputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Question\Question;
 use TQ\Shamir\Secret;
@@ -37,9 +38,22 @@ class RecoverCommand extends Command
             $helper   = $this->getHelper('question');
             $question = new Question('<question>Shared secret</question> <comment>[empty to stop]</comment>: ');
             $shares   = [];
-            while (($share = trim($helper->ask($input, $output, $question))) !== '') {
+            // ask() yields null at end of input and under --no-interaction, which
+            // must end the loop rather than reach trim() as a null
+            while (($share = $helper->ask($input, $output, $question)) !== null) {
+                $share = trim($share);
+                if ($share === '') {
+                    break;
+                }
                 $shares[] = $share;
             }
+        }
+
+        if (empty($shares)) {
+            $errorOutput = $output instanceof ConsoleOutputInterface ? $output->getErrorOutput() : $output;
+            $errorOutput->writeln('<error>ERROR: no shares given.</error>');
+
+            return Command::FAILURE;
         }
 
         $shared = Secret::recover($shares);

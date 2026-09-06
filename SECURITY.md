@@ -39,6 +39,14 @@ it, and usually into the shell history too. The command prints a warning when
 used this way. Prefer `--file`, or piping the secret on standard input, or the
 interactive prompt.
 
+**Adding shares is as sensitive as recovery.** `Secret::addShares()` needs
+`threshold` existing shares to issue more, which is by definition enough to
+reconstruct the secret. It also trusts the caller's statement of the highest
+share number issued so far. Understating it re-issues an existing number, which
+yields a byte-identical copy of a share already in circulation - recovery never
+returns a wrong secret, but two holders end up with the same share, so the set
+contains fewer distinct shares than the share count suggests.
+
 **Randomness matters.** Shares are generated from random polynomial
 coefficients. The default `PhpGenerator` uses `random_int()`, which draws from
 the system CSPRNG. `OpenSslGenerator` is available as an alternative. A custom

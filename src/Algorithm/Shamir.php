@@ -16,7 +16,7 @@ use TQ\Shamir\Random\PhpGenerator;
  *
  * @package TQ\Shamir\Algorithm
  */
-class Shamir implements Algorithm, RandomGeneratorAware
+class Shamir implements Algorithm, ExtendableAlgorithm, RandomGeneratorAware
 {
     /**
      * Calculation base (decimal)
@@ -261,6 +261,23 @@ class Shamir implements Algorithm, RandomGeneratorAware
      */
     protected function reverseCoefficients(array $keyX, int $threshold): array
     {
+        return $this->lagrangeCoefficients($keyX, $threshold, 0);
+    }
+
+    /**
+     * Calculates the Lagrange basis polynomials evaluated at a given x
+     *
+     * Recovery needs these at x = 0, where the polynomial equals the secret.
+     * Evaluating at any other x yields the y value a share for that x would carry,
+     * which is what lets addShares() extend an existing set.
+     *
+     * @param  array  $keyX       X coordinates of the known shares
+     * @param  int    $threshold  Number of shares the polynomial was built for
+     * @param  int    $atX        X coordinate to evaluate the basis at
+     * @throws RuntimeException
+     */
+    protected function lagrangeCoefficients(array $keyX, int $threshold, int $atX): array
+    {
         $coefficients = [];
 
         for ($i = 0; $i < $threshold; $i++) {
@@ -268,7 +285,7 @@ class Shamir implements Algorithm, RandomGeneratorAware
             for ($j = 0; $j < $threshold; $j++) {
                 if ($i !== $j) {
                     $temp = $this->modulo(
-                        bcmul(bcmul(-$temp, $keyX[$j]), $this->inverseModulo($keyX[$i] - $keyX[$j]))
+                        bcmul(bcmul($temp, $atX - $keyX[$j]), $this->inverseModulo($keyX[$i] - $keyX[$j]))
                     );
                 }
             }
@@ -536,9 +553,16 @@ class Shamir implements Algorithm, RandomGeneratorAware
     }
 
     /**
-     * @inheritdoc
+     * Decodes a set of keys into the parts the algorithm works with
+     *
+     * Shared by recover() and addShares(), which need the same header fields and
+     * coordinates but do different things with them.
+     *
+     * @param  array  $keys  Shares belonging to one secret
+     * @return array{bytes:int,maxBaseLength:int,threshold:int,keyX:array,keyY:array,keyLen:int,padCount:int}
+     * @throws RuntimeException
      */
-    public function recover(array $keys): string
+    protected function parseKeys(array $keys): array
     {
         if (!count($keys)) {
             throw new RuntimeException('No keys given.');
@@ -552,7 +576,7 @@ class Shamir implements Algorithm, RandomGeneratorAware
         // analyse first key
         $key = reset($keys);
         // first we need to find out the bytes to predict threshold and sequence length
-        $bytes = hexdec(substr($key, 0, 1));
+        $bytes = (int)hexdec(substr($key, 0, 1));
         $this->applyChunkSize($bytes);
         // calculate the maximum length of key sequence number and threshold
         $maxBaseLength = $this->maxKeyLength($bytes);
@@ -590,15 +614,116 @@ class Shamir implements Algorithm, RandomGeneratorAware
             }
         }
 
-        $keyLen /= $maxBaseLength;
-        $secret = $this->joinSecret($keyX, $keyY, $bytes, $keyLen, $threshold);
+        return [
+            'bytes'         => $bytes,
+            'maxBaseLength' => $maxBaseLength,
+            'threshold'     => $threshold,
+            'keyX'          => $keyX,
+            'keyY'          => $keyY,
+            'keyLen'        => intdiv($keyLen, $maxBaseLength),
+            // all keys of one secret carry the same padding, so the first is enough
+            'padCount'      => substr_count(reset($keys), self::PAD_CHAR),
+        ];
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function recover(array $keys): string
+    {
+        $parsed = $this->parseKeys($keys);
+
+        $secret = $this->joinSecret(
+            $parsed['keyX'],
+            $parsed['keyY'],
+            $parsed['bytes'],
+            $parsed['keyLen'],
+            $parsed['threshold']
+        );
 
         // remove padding from secret (NULL bytes);
-        $padCount = substr_count(reset($keys), self::PAD_CHAR);
-        if ($padCount) {
-            $secret = substr($secret, 0, -1 * $padCount);
+        if ($parsed['padCount']) {
+            $secret = substr($secret, 0, -1 * $parsed['padCount']);
         }
 
         return $secret;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function addShares(array $keys, int $additional, int $highestSequence): array
+    {
+        if ($additional < 1) {
+            throw new OutOfRangeException('Number of additional shares has to be at least 1.');
+        }
+
+        $parsed    = $this->parseKeys($keys);
+        $threshold = $parsed['threshold'];
+        $keyX      = $parsed['keyX'];
+        $keyY      = $parsed['keyY'];
+        $keyLen    = $parsed['keyLen'];
+
+        // Only the caller knows how many shares were ever handed out - the keys
+        // passed in may be any subset of them - so the highest issued number has to
+        // be stated rather than guessed. Understating it rebuilds the same
+        // polynomial at an x already in use and therefore reproduces that share
+        // exactly, which is harmless to recovery but means two holders unknowingly
+        // carry the same share. This check catches only what is provable from the
+        // keys in hand.
+        $known = max($keyX);
+        if ($highestSequence < $known) {
+            throw new OutOfRangeException(
+                'Highest issued share number has to be at least '.$known.', as that share was passed in.'
+            );
+        }
+
+        if ($highestSequence + $additional >= $this->prime) {
+            throw new OutOfRangeException(
+                'Number of shares has to be between 1 and '.$this->prime.'.'
+            );
+        }
+
+        // rebuild the same header the original keys carry
+        $maxBaseLength = $parsed['maxBaseLength'];
+        $paddingChar   = substr(self::CHARS, 0, 1);
+        $prefix        = sprintf(
+            '%x%'.$paddingChar.$maxBaseLength.'s',
+            $parsed['bytes'],
+            self::convBase($threshold, self::DECIMAL, self::CHARS)
+        );
+        $tail = str_repeat(self::PAD_CHAR, $parsed['padCount']);
+
+        $newKeys = [];
+        for ($n = 1; $n <= $additional; ++$n) {
+            $sequence = $highestSequence + $n;
+
+            // the y value a share for this x would have carried all along
+            $coefficients = $this->lagrangeCoefficients($keyX, $threshold, $sequence);
+
+            $key = $prefix.sprintf(
+                '%'.$paddingChar.$maxBaseLength.'s',
+                self::convBase($sequence, self::DECIMAL, self::CHARS)
+            );
+
+            for ($i = 0; $i < $keyLen; $i++) {
+                $y = 0;
+                for ($j = 0; $j < $threshold; $j++) {
+                    $y = $this->modulo(
+                        bcadd($y, bcmul($keyY[$j * $keyLen + $i], $coefficients[$j]))
+                    );
+                }
+                $key .= str_pad(
+                    self::convBase($y, self::DECIMAL, self::CHARS),
+                    $maxBaseLength,
+                    $paddingChar,
+                    STR_PAD_LEFT
+                );
+            }
+
+            $newKeys[] = $key.$tail;
+        }
+
+        return $newKeys;
     }
 }
