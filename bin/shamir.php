@@ -7,7 +7,7 @@ use TQ\Shamir\Console\AddCommand;
 use TQ\Shamir\Console\RecoverCommand;
 use TQ\Shamir\Console\ShareCommand;
 
-$application = new Application('Shamir\'s Shared Secret CLI', '2.1.0');
+$application = new Application('Shamir\'s Shared Secret CLI', '2.2.0');
 
 foreach ([new RecoverCommand(), new ShareCommand(), new AddCommand()] as $command) {
     // Application::add() was deprecated in Symfony 7.4 and removed in 8.0 in
