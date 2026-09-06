@@ -31,19 +31,9 @@ jobs:
             "8.5"
         ]
         dependencies: [
+            "lowest",
             "highest"
         ]
-        include:
-          # A --prefer-lowest run resolves symfony/console 6.4.3 and, transitively,
-          # symfony/string 5.4. Those releases predate PHP 8.4's "implicitly nullable
-          # parameter" deprecation, so on 8.4+ they print notices that CliTest's stdout
-          # assertions pick up - an upstream/PHP mismatch, not a defect in this library.
-          # The declared floor is therefore verified on the PHP versions those releases
-          # target; 8.4 and 8.5 are covered by the highest-dependency runs above.
-          - php-version: "8.2"
-            dependencies: "lowest"
-          - php-version: "8.3"
-            dependencies: "lowest"
     name: PHP ${{ matrix.php-version }} (${{ matrix.dependencies }} deps)
     steps:
       - name: checkout project
