@@ -3,6 +3,7 @@
 .github export-ignore
 .gitignore export-ignore
 .idea export-ignore
+AGENTS.md export-ignore
 CLAUDE.md export-ignore
 codecov.yml export-ignore
 docker export-ignore
