@@ -43,7 +43,9 @@ The algorithm encodes secrets using a custom base-45 alphabet (`0-9a-z.,:;-+*#%`
 
 `CHANGELOG.md` follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Keep it current:
 
-- Every user-visible change (API, CLI behaviour, requirements, fixes) gets an entry under `## [Unreleased]` in the same change that makes it. Test-only and CI-only changes need no entry unless they affect users or contributors.
+- Every user-visible change (API, CLI behaviour, requirements, fixes) gets an entry under `## [Unreleased]` in the same change that makes it.
+- Within a version, user-facing sections come first, in this order: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`. Breaking changes are bolded and listed first in their section. CI, tests, dev dependencies and tooling go in a final `### Internal` section. The test: would someone who only runs `composer require` notice it? If not, it goes under `Internal`.
+- A released version opens with a one-line `**Upgrading:**` note saying what users must change, or "nothing to change".
 - On release, rename `[Unreleased]` to `## [X.Y.Z] - YYYY-MM-DD`, open a fresh empty `[Unreleased]` above it, and update the compare links at the bottom of the file. Bump the version in `bin/shamir.php` and `README.md` in the same commit, and update the README support matrix if requirements changed.
 - The GitHub release notes for a version should agree with its changelog section.
 
