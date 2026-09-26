@@ -4,6 +4,8 @@ All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+Each version lists user-facing changes first; `Internal` covers CI, tests and
+development tooling that do not affect anyone installing the package.
 
 Shares are portable across every release: a share created by any version listed here
 can be recovered by any other. `tests/LegacyShareTest.php` enforces this.
@@ -16,7 +18,7 @@ can be recovered by any other. `tests/LegacyShareTest.php` enforces this.
   terminated any process embedding the command. It now reports
   `ERROR: file "..." is not readable.` on the error output and returns exit code 1.
 
-### Changed
+### Internal
 
 - Unit tests for the console commands (`tests/ConsoleCommandTest.php`), covering
   invalid input for `shamir:share`, `shamir:recover` and `shamir:add`.
@@ -24,6 +26,8 @@ can be recovered by any other. `tests/LegacyShareTest.php` enforces this.
   runs on current PHP show only deprecations triggered by this package.
 
 ## [2.2.0] - 2026-09-06
+
+**Upgrading:** nothing to change. Shares from every earlier release still recover.
 
 ### Added
 
@@ -45,14 +49,21 @@ can be recovered by any other. `tests/LegacyShareTest.php` enforces this.
 
 ## [2.1.0] - 2026-09-06
 
+**Upgrading:** requires PHP 8.2 and `symfony/console` ^6.4.3. No code changes needed.
+On older PHP, Composer keeps you on 2.0.x, and your shares remain recoverable there.
+
 ### Added
 
 - Support for `symfony/console` ^8.0, alongside ^6.4.3 and ^7.0.
 - Warning on the error output when `shamir:share` receives the secret as a command
   argument, since it is visible to other users in process listings.
 - `SECURITY.md` covering private vulnerability reporting.
-- Share-format regression tests: shares captured from 1.1.0 and 2.0.1 are recovered on
-  every run, and known-answer vectors pin the encoder output.
+
+### Changed
+
+- **Requires PHP 8.2 or above.** PHP 8.1 reached end of life on 2025-12-31.
+- **`symfony/console` floor raised to ^6.4.3**; ^5.0 is no longer supported.
+- The distributed archive no longer contains CI, editor or agent configuration.
 
 ### Fixed
 
@@ -65,16 +76,17 @@ can be recovered by any other. `tests/LegacyShareTest.php` enforces this.
 - `Secret::setRandomGenerator()` and `Secret::setAlgorithm()` declare their nullable
   parameters explicitly, avoiding the PHP 8.4 implicit-nullable deprecation.
 
-### Changed
+### Internal
 
-- **Requires PHP 8.2 or above.** PHP 8.1 reached end of life on 2025-12-31.
-- `symfony/console` floor raised to ^6.4.3; ^5.0 is no longer supported.
+- Share-format regression tests: shares captured from 1.1.0 and 2.0.1 are recovered on
+  every run, and known-answer vectors pin the encoder output.
 - Development: `phpunit/phpunit` ^11.5 || ^12.0 || ^13.0, PHPStan added.
 - CI runs PHP 8.2 to 8.5 against lowest and highest dependencies. Travis CI, Code
   Climate and Scrutinizer were removed.
-- The distributed archive no longer contains CI, editor or agent configuration.
 
 ## [2.0.1] - 2023-12-22
+
+**Upgrading:** nothing to change.
 
 ### Added
 
@@ -83,34 +95,43 @@ can be recovered by any other. `tests/LegacyShareTest.php` enforces this.
 ### Changed
 
 - `shamir:share --file` now takes precedence over data on STDIN.
+
+### Internal
+
 - Development: `phpunit/phpunit` ^10.5, GitHub Actions CI with coverage, Dependabot.
 
 ## [2.0.0] - 2023-12-21
 
+**Upgrading:** requires PHP 8.1 and `symfony/console` ^5.0 or ^6.0. No code changes
+needed. On older PHP, Composer keeps you on 1.1.x.
+
 ### Changed
 
 - **Requires PHP 8.1 or above.** PHP 7.x and 8.0 are no longer supported.
-- `symfony/console` ^5.0 || ^6.0; ^2.0, ^3.0 and ^4.0 are no longer supported.
+- **`symfony/console` ^5.0 || ^6.0**; ^2.0, ^3.0 and ^4.0 are no longer supported.
+
+### Internal
+
 - Development: `phpunit/phpunit` ^10.0.
 - Docker environment file renamed to `docker/compose.yaml`.
 
 ## [1.1.0] - 2023-05-22
 
 First tagged release. Earlier development (2014 to 2020) was not tagged.
+Requires PHP 7.2 up to 8.1 and `symfony/console` ^2.0 || ^3.0 || ^4.0 || ^5.0.
 
 ### Added
 
 - `shamir:share` and `shamir:recover` CLI commands.
 - `OpenSslGenerator` as an alternative random generator to `PhpGenerator`.
-- Docker Compose development environment.
 
 ### Fixed
 
 - PHP 8.1 deprecation from passing `null` to `bcadd()`.
 
-### Requirements
+### Internal
 
-- PHP 7.2 up to 8.1, `symfony/console` ^2.0 || ^3.0 || ^4.0 || ^5.0.
+- Docker Compose development environment.
 
 [Unreleased]: https://github.com/teqneers/shamir/compare/2.2.0...HEAD
 [2.2.0]: https://github.com/teqneers/shamir/compare/2.1.0...2.2.0
